@@ -31,3 +31,188 @@ body {
     text-wrap: balance;
   }
 }
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}
+
+.featured-programs {
+  position: relative;
+}
+
+.featured-programs::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-image: url('/images/ecogym-logo.png');
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: 50%;
+  opacity: 0.05;
+  pointer-events: none;
+}
+
+.program-image {
+  transition: transform 0.3s ease-in-out;
+}
+
+.program-image:hover {
+  transform: scale(1.05);
+}
+
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.animate-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@media (max-width: 640px) {
+  .featured-programs {
+    /* Adjust the background size for mobile */
+    background-size: 150%;
+  }
+
+  .text-shadow {
+    /* Enhance text shadow for better readability on mobile */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+  }
+}
+
+@media (min-width: 1024px) {
+  .featured-programs .program-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+
+
+
+.swiper-pagination-bullet {
+  background: white !important;
+}
+
+.swiper-pagination-bullet-active {
+  background: #40E0D0 !important;
+}
+
+
+
+/* global.css */
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.section {
+  padding: 20px 0;
+}
+
+.section h2 {
+  border-bottom: 2px solid #4fd1c5; /* turquoise color */
+  padding-bottom: 10px;
+}
+
+.section + .section {
+  border-top: 1px solid #333;
+  padding-top: 20px;
+}
+
+
+
+
+/* Navigation Bar Styles */
+.bg-gray-800 {
+  background-color: #2d3748; /* Customize as needed */
+}
+.text-turquoise {
+  color: #38b2ac; /* Customize as needed */
+}
+.flex {
+  display: flex;
+}
+.justify-around {
+  justify-content: space-around;
+}
+.items-center {
+  align-items: center;
+}
+.p-4 {
+  padding: 1rem;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}
+.mb-8 {
+  margin-bottom: 2rem;
+}
+.text-2xl {
+  font-size: 1.5rem;
+}
+.mb-1 {
+  margin-bottom: 0.25rem;
+}
+
+/* Welcome Message Styles */
+.text-center {
+  text-align: center;
+}
+.text-3xl {
+  font-size: 2rem;
+}
+.font-bold {
+  font-weight: bold;
+}
+.text-gray-500 {
+  color: #a0aec0; /* Customize as needed */
+}
+
+/* Section Titles */
+.text-2xl {
+  font-size: 1.5rem;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+
+/* Profile Page Styles */
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+}
+.bg-gray-800 {
+  background-color: #2d3748;
+}
+.text-turquoise {
+  color: #38b2ac;
+}
+.text-white {
+  color: #fff;
+}
+.text-sm {
+  font-size: 0.875rem;
+}
+.font-bold {
+  font-weight: bold;
+}
+.mb-4 {
+  margin-bottom: 1rem;
+}
+.p-6 {
+  padding: 1.5rem;
+}
+.rounded-lg {
+  border-radius: 0.5rem;
+}
