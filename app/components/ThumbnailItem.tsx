@@ -5,14 +5,14 @@
 import { useState } from 'react';
 import Image from 'next/image';
 import Modal from './Modal';
-import { ProgramItem } from '../types';
+import { Program } from '../types';
 
 interface ThumbnailItemProps {
-  item: ProgramItem;
+  item: Program;
 }
 
 const ThumbnailItem: React.FC<ThumbnailItemProps> = ({ item }) => {
-  const [selectedItem, setSelectedItem] = useState<ProgramItem | null>(null);
+  const [selectedItem, setSelectedItem] = useState<Program | null>(null);
 
   return (
     <>
@@ -43,4 +43,5 @@ const ThumbnailItem: React.FC<ThumbnailItemProps> = ({ item }) => {
 };
 
 export default ThumbnailItem;
+
 
