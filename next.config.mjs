@@ -10,6 +10,13 @@ const nextConfig = {
       },
     ],
   },
+  productionBrowserSourceMaps: false,
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.alias['react-toastify'] = 'react-toastify'
+    }
+    return config
+  },
 };
 
 export default nextConfig;
