@@ -81,3 +81,13 @@ export interface Purchase {
   amount: number;
   created_at: string;
 }
+
+
+export interface ProgramItem {
+  id: number; // Change from string to number
+  title: string;
+  description: string;
+  thumbnailUrl?: string;
+  trainer: Trainer;
+}
+

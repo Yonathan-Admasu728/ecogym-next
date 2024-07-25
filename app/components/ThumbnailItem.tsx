@@ -1,10 +1,11 @@
 // app/components/ThumbnailItem.tsx
+
 'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
 import Modal from './Modal';
-import { ProgramItem } from '../types/ProgramItem';
+import { ProgramItem } from '../types';
 
 interface ThumbnailItemProps {
   item: ProgramItem;
@@ -42,3 +43,4 @@ const ThumbnailItem: React.FC<ThumbnailItemProps> = ({ item }) => {
 };
 
 export default ThumbnailItem;
+
