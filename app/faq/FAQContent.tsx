@@ -33,7 +33,7 @@ const faqs: FAQ[] = [
   },
   {
     question: "Is there a free trial available?",
-    answer: "Yes, we offer a 14-day free trial for new users. This gives you full access to all our features so you can experience the benefits of Ecogym before committing to a subscription."
+    answer: "Yes, we offer a unique trial system at Ecogym. For all our programs, whether they're meditation sessions or workout routines, the first complete session is entirely free. This allows you to experience the quality and benefits of our various offerings before deciding to purchase. After your free session, you can choose to continue with a subscription to access the full range of our programs and features."
   }
 ];
 
