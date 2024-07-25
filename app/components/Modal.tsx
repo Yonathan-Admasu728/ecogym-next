@@ -7,23 +7,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import SignInModal from './SignInModal';
 import { PaymentService } from '../services/PaymentService';
-
-interface Trainer {
-  user: {
-    first_name: string;
-    last_name: string;
-  };
-  profile_picture?: string;
-  bio: string;
-}
-
-interface ProgramItem {
-  id: string;
-  title: string;
-  description: string;
-  thumbnailUrl?: string;
-  trainer: Trainer;
-}
+import { ProgramItem } from '../types';
 
 interface ModalProps {
   item: ProgramItem;
@@ -52,7 +36,7 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
     } else {
       console.log('User authenticated, checking purchase status');
       try {
-        const purchaseStatus = await PaymentService.checkPurchaseStatus(Number(item.id));
+        const purchaseStatus = await PaymentService.checkPurchaseStatus(item.id);
         if (purchaseStatus.purchased) {
           console.log('Program purchased, navigating to session access');
           router.push(`/programs/${item.id}/sessions/access`);
