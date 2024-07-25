@@ -7,10 +7,10 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import SignInModal from './SignInModal';
 import { PaymentService } from '../services/PaymentService';
-import { ProgramItem } from '../types';
+import { Program } from '../types';
 
 interface ModalProps {
-  item: ProgramItem;
+  item: Program;
   onClose: () => void;
 }
 
@@ -104,3 +104,4 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }) => {
 };
 
 export default Modal;
+

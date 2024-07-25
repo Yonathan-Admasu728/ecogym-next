@@ -4,14 +4,14 @@
 import { useEffect, useState } from 'react';
 import ThumbnailItem from './ThumbnailItem';
 import { fetchPrograms, fetchProgramsByCategory } from '../utils/api';
-import { ProgramItem } from '../types/ProgramItem';
+import { Program } from '../types';
 
 interface ThumbnailsProps {
   category: 'all' | 'workout' | 'meditation';
 }
 
 const Thumbnails: React.FC<ThumbnailsProps> = ({ category }) => {
-  const [items, setItems] = useState<ProgramItem[]>([]);
+  const [items, setItems] = useState<Program[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
