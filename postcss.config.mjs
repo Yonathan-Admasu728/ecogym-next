@@ -2,6 +2,11 @@
 const config = {
   plugins: {
     tailwindcss: {},
+    'postcss-preset-env': {
+      features: {
+        'custom-properties': false,
+      },
+    },
   },
 };
 

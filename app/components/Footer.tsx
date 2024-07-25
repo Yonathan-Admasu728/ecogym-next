@@ -1,8 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { FaTwitter, FaFacebook, FaInstagram, FaYoutube, FaChevronDown } from 'react-icons/fa';
+import { FaTwitter, FaFacebook, FaInstagram, FaYoutube } from 'react-icons/fa';
 
 const footerLinks = [
   {
@@ -28,46 +28,21 @@ const footerLinks = [
       { name: 'Blog', href: '/blog' },
       { name: 'Careers', href: '/careers' },
     ]
-  },
-  {
-    title: 'Legal',
-    items: [
-      { name: 'Privacy Policy', href: '/privacy-policy' },
-      { name: 'Terms of Service', href: '/terms-of-service' },
-    ]
   }
 ];
 
 const Footer = () => {
-  const [expandedSections, setExpandedSections] = useState<Set<string>>(new Set());
-  const [isMobile, setIsMobile] = useState(false);
+  const [year, setYear] = useState(new Date().getFullYear());
 
   useEffect(() => {
-    const handleResize = () => {
-      setIsMobile(window.innerWidth < 768);
-    };
-    handleResize();
-    window.addEventListener('resize', handleResize);
-    return () => window.removeEventListener('resize', handleResize);
+    setYear(new Date().getFullYear());
   }, []);
-
-  const toggleSection = (title: string) => {
-    setExpandedSections(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(title)) {
-        newSet.delete(title);
-      } else {
-        newSet.add(title);
-      }
-      return newSet;
-    });
-  };
 
   return (
     <footer className="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300">
-      <div className="max-w-7xl mx-auto px-4 py-16 sm:px-6 lg:py-20 lg:px-8">
-        <div className="flex flex-col lg:flex-row justify-between">
-          <div className="mb-12 lg:mb-0 lg:w-1/3">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:py-16 lg:px-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <div className="col-span-1 md:col-span-2 lg:col-span-1">
             <Image
               src="/images/logo.png"
               alt="Eco Gym Logo"
@@ -87,55 +62,36 @@ const Footer = () => {
               ))}
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 lg:w-2/3">
-            {footerLinks.map((column) => (
-              <div key={column.title} className="mb-8 md:mb-0">
-                <button
-                  className="text-sm font-semibold text-teal-400 tracking-wider uppercase mb-4 flex items-center justify-between w-full group"
-                  onClick={() => isMobile && toggleSection(column.title)}
-                  aria-expanded={expandedSections.has(column.title)}
-                >
-                  {column.title}
-                  {isMobile && (
-                    <FaChevronDown 
-                      className={`ml-2 transition-transform duration-300 group-hover:text-teal-300 ${
-                        expandedSections.has(column.title) ? 'transform rotate-180' : ''
-                      }`} 
-                    />
-                  )}
-                </button>
-                <ul 
-                  className={`space-y-3 overflow-hidden transition-all duration-300 ease-in-out ${
-                    isMobile
-                      ? expandedSections.has(column.title)
-                        ? 'max-h-48 opacity-100'
-                        : 'max-h-0 opacity-0'
-                      : 'max-h-48 opacity-100'
-                  }`}
-                >
-                  {column.items.map((item) => (
-                    <li key={item.name} className="transform hover:translate-x-2 transition-transform duration-300">
-                      <Link href={item.href} className="text-base text-gray-400 hover:text-teal-400 transition-colors duration-300">
-                        {item.name}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
+          {footerLinks.map((column) => (
+            <div key={column.title} className="mt-8 lg:mt-0">
+              <h3 className="text-sm font-semibold text-teal-400 tracking-wider uppercase mb-4">
+                {column.title}
+              </h3>
+              <ul className="space-y-3">
+                {column.items.map((item) => (
+                  <li key={item.name} className="transform hover:translate-x-2 transition-transform duration-300">
+                    <Link href={item.href} className="text-base text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                      {item.name}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
         </div>
-        <div className="mt-16 border-t border-gray-700 pt-8 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-base text-gray-400 mb-4 md:mb-0">
-            &copy; {new Date().getFullYear()} Eco Gym. All rights reserved.
-          </p>
-          <div className="flex space-x-6">
-            <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-teal-400 transition-colors duration-300">
-              Privacy Policy
-            </Link>
-            <Link href="/terms-of-service" className="text-sm text-gray-400 hover:text-teal-400 transition-colors duration-300">
-              Terms of Service
-            </Link>
+        <div className="mt-12 pt-8 border-t border-gray-700">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <p className="text-base text-gray-400 text-center md:text-left mb-4 md:mb-0">
+              &copy; {year} Eco Gym. All rights reserved.
+            </p>
+            <div className="flex space-x-6">
+              <Link href="/privacy-policy" className="text-sm text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                Privacy Policy
+              </Link>
+              <Link href="/terms-of-service" className="text-sm text-gray-400 hover:text-teal-400 transition-colors duration-300">
+                Terms of Service
+              </Link>
+            </div>
           </div>
         </div>
       </div>
