@@ -11,7 +11,7 @@ const PurchaseStatus: React.FC<PurchaseStatusProps> = ({ programId }) => {
   const [isPurchased, setIsPurchased] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { user, loading, getToken } = useAuth();
+  const { user, loading, getIdToken } = useAuth();
 
   useEffect(() => {
     const checkPurchaseStatus = async () => {
@@ -24,7 +24,12 @@ const PurchaseStatus: React.FC<PurchaseStatusProps> = ({ programId }) => {
       }
 
       try {
-        const result = await PaymentService.checkPurchaseStatus(programId, getToken);
+        const token = await getIdToken();
+        if (!token) {
+          throw new Error('Failed to get authentication token');
+        }
+
+        const result = await PaymentService.checkPurchaseStatus(programId);
         setIsPurchased(result.purchased);
       } catch (err) {
         console.error('Failed to check purchase status:', err);
@@ -36,7 +41,7 @@ const PurchaseStatus: React.FC<PurchaseStatusProps> = ({ programId }) => {
     };
 
     checkPurchaseStatus();
-  }, [programId, user, loading, getToken]);
+  }, [programId, user, loading, getIdToken]);
 
   if (loading) return <div>Loading auth state...</div>;
   if (isLoading) return <div>Checking purchase status...</div>;

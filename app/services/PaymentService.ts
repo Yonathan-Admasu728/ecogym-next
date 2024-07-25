@@ -44,10 +44,12 @@ export const PaymentService = {
         program_id: programId,
       });
       console.log('Create checkout session response:', response.data);
-      return response.data; // Ensure it returns the response data which includes sessionId
+      const { sessionId } = response.data;
+      return { sessionId };
     } catch (error) {
       console.error('Error creating checkout session:', error);
       handleApiError(error);
+      return undefined;
     }
   },
 
