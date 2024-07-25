@@ -34,10 +34,12 @@ const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, tit
         throw new Error('Failed to get authentication token');
       }
 
-      const { sessionId } = await PaymentService.createCheckoutSession(programId);
-      if (!sessionId) {
+      const sessionResponse = await PaymentService.createCheckoutSession(programId);
+      if (!sessionResponse || !sessionResponse.sessionId) {
         throw new Error('Failed to create checkout session');
       }
+
+      const { sessionId } = sessionResponse;
 
       const stripe = await stripePromise;
       if (!stripe) {
