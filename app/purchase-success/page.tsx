@@ -1,7 +1,7 @@
 // app/purchase-success/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import React, { useEffect, useState, Suspense } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
@@ -116,4 +116,12 @@ const PurchaseSuccessPage = () => {
   );
 };
 
-export default PurchaseSuccessPage;
+const WrappedPurchaseSuccessPage: React.FC = () => {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PurchaseSuccessPage />
+    </Suspense>
+  );
+};
+
+export default WrappedPurchaseSuccessPage;
