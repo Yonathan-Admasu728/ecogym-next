@@ -1,7 +1,5 @@
 // components/ProgramPurchase.tsx
 
-// components/ProgramPurchase.tsx
-
 import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
 import { useAuth } from '../context/AuthContext';
@@ -37,6 +35,9 @@ const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, tit
       }
 
       const { sessionId } = await PaymentService.createCheckoutSession(programId);
+      if (!sessionId) {
+        throw new Error('Failed to create checkout session');
+      }
 
       const stripe = await stripePromise;
       if (!stripe) {
@@ -74,5 +75,3 @@ const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, tit
 };
 
 export default ProgramPurchase;
-
-

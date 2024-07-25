@@ -1,4 +1,4 @@
-// app/services/PaymentService.ts
+// services/PaymentService.ts
 
 import axios, { AxiosError } from 'axios';
 import { loadStripe } from '@stripe/stripe-js';
@@ -44,17 +44,7 @@ export const PaymentService = {
         program_id: programId,
       });
       console.log('Create checkout session response:', response.data);
-      const { sessionId } = response.data;
-
-      const stripe = await stripePromise;
-      if (stripe) {
-        const { error } = await stripe.redirectToCheckout({ sessionId });
-        if (error) {
-          console.error('Stripe checkout error:', error.message);
-        }
-      } else {
-        throw new Error('Stripe failed to load');
-      }
+      return response.data; // Ensure it returns the response data which includes sessionId
     } catch (error) {
       console.error('Error creating checkout session:', error);
       handleApiError(error);
