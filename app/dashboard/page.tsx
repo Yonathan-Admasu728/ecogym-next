@@ -94,25 +94,21 @@ const DashboardPage = () => {
 
       {/* Featured Programs Carousel */}
       <div className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Featured Programs</h2>
         <FeaturedPrograms purchasedPrograms={userPrograms.purchased_programs} />
       </div>
 
       {/* User's Purchased Programs */}
       <div id="purchased" className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Programs You Own</h2>
         <PurchasedPrograms programs={userPrograms.purchased_programs} />
       </div>
 
       {/* User's Favorite Programs */}
       <div id="favorites" className="mb-8">
-        <h2 className="text-2xl font-bold mb-4">Your Favorites</h2>
         <Favorites programs={userPrograms.favorite_programs} />
       </div>
 
       {/* Watch Later Programs */}
       <div id="watchlater">
-        <h2 className="text-2xl font-bold mb-4">Watch Later</h2>
         <WatchLater programs={userPrograms.watch_later_programs} />
       </div>
     </div>
