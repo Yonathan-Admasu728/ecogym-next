@@ -41,12 +41,17 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       if (firebaseUser) {
-        const token = await firebaseUser.getIdToken(true);
-        localStorage.setItem('authToken', token);
-        const userObj = convertFirebaseUserToUser(firebaseUser);
-        setUser(userObj);
-        localStorage.setItem('user', JSON.stringify(userObj));
-        await authenticateWithDjango(token);
+        try {
+          const token = await firebaseUser.getIdToken(true);
+          localStorage.setItem('authToken', token);
+          const userObj = convertFirebaseUserToUser(firebaseUser);
+          setUser(userObj);
+          localStorage.setItem('user', JSON.stringify(userObj));
+          await authenticateWithDjango(token);
+        } catch (error) {
+          console.error('Error during authentication', error);
+          setError('Failed to authenticate');
+        }
       } else {
         localStorage.removeItem('authToken');
         localStorage.removeItem('user');
@@ -58,10 +63,14 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const refreshTokenInterval = setInterval(async () => {
       const currentUser = auth.currentUser;
       if (currentUser) {
-        const token = await currentUser.getIdToken(true);
-        console.log('Token refreshed');
-        localStorage.setItem('authToken', token);
-        await authenticateWithDjango(token);
+        try {
+          const token = await currentUser.getIdToken(true);
+          console.log('Token refreshed');
+          localStorage.setItem('authToken', token);
+          await authenticateWithDjango(token);
+        } catch (error) {
+          console.error('Error refreshing token', error);
+        }
       }
     }, 55 * 60 * 1000);
 
@@ -83,8 +92,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       lastLoginTime: firebaseUser.metadata.lastSignInTime || '',
     },
   });
-  
-  
 
   const handleSignIn = async (methodName: string, method: () => Promise<UserCredential>) => {
     setError(null);
@@ -101,7 +108,8 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('Failed to obtain ID token');
       }
     } catch (err) {
-      // ... (error handling)
+      console.error(`Sign in with ${methodName} failed`, err);
+      setError(`Sign in with ${methodName} failed`);
     } finally {
       setIsSigningIn(false);
     }
@@ -116,6 +124,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (err) {
       const error = err as any;
       console.error('Authentication failed:', error.response ? error.response.data : error.message);
+      setError('Failed to authenticate with server');
     }
   };
 
@@ -153,14 +162,13 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         return token;
       } catch (error) {
         console.error('Error getting ID token:', error);
+        setError('Failed to get ID token');
         return null;
       }
     }
     console.log("No current user");
     return null;
   };
-  
-  
 
   return (
     <AuthContext.Provider
