@@ -58,9 +58,9 @@ export interface Program {
   review_count: number;
   average_rating: number;
   purchased_by_user?: boolean;
-  isFavorite?: boolean; // Add this line
-  isWatchLater?: boolean; // Add this line
-  id: number; // Ensure Program id is a number
+  id: number;
+  isFavorite?: boolean;
+  isWatchLater?: boolean;
   stripe_price_id: string;
 }
 

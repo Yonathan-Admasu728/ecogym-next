@@ -7,7 +7,6 @@ import { toast } from "react-toastify";
 import {
   FaStar,
   FaBookmark,
-  FaShare,
   FaInfoCircle,
   FaClock,
   FaShareAlt,
@@ -15,8 +14,8 @@ import {
 } from "react-icons/fa";
 import { motion } from "framer-motion";
 import { Program, ProgramCardProps } from "../types";
-import { InstructorModal } from "./";
-
+import InstructorModal from "./InstructorModal";
+import { useProgramActions } from '../hooks/useProgramActions';
 import {
   FacebookShareButton,
   TwitterShareButton,
@@ -27,16 +26,7 @@ import {
 } from "react-share";
 
 const ProgramCard: React.FC<ProgramCardProps> = memo(
-  ({
-    program,
-    isFeatured,
-    onExplore,
-    onToggleFavorite,
-    onToggleWatchLater,
-    isFavorite,
-    isWatchLater,
-    isPurchased,
-  }) => {
+  ({ program, isFeatured, onExplore, isPurchased })  => {
     const [isHovered, setIsHovered] = useState(false);
     const [isInstructorModalOpen, setIsInstructorModalOpen] = useState(false);
     const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
@@ -45,9 +35,8 @@ const ProgramCard: React.FC<ProgramCardProps> = memo(
       if (program.thumbnail) return program.thumbnail;
       return "/placeholder-image.jpg";
     });
-
-    // Log the image source to verify the URL
-    console.log('Image Source:', imgSrc);
+   
+    const { isFavorite, isWatchLater, handleToggleFavorite, handleToggleWatchLater } = useProgramActions(program.id);
 
     const shareUrl = `${window.location.origin}/programs/${program.id}`;
     const shareTitle = `Check out this program: ${program.title}`;
@@ -86,8 +75,8 @@ const ProgramCard: React.FC<ProgramCardProps> = memo(
             objectFit="cover"
             className="rounded-lg"
             loading="lazy"
-            onError={(e) => {
-              console.error(`Failed to load image: ${imgSrc}`, e);
+            onError={() => {
+              console.error(`Failed to load image: ${imgSrc}`);
               setImgSrc("/placeholder-image.jpg");
             }}
           />
@@ -142,24 +131,20 @@ const ProgramCard: React.FC<ProgramCardProps> = memo(
           <>
             <p className="text-sm mb-4">{program.description}</p>
             <div className="absolute bottom-4 right-4 flex space-x-2">
-              {onToggleFavorite && (
-                <button 
-                  onClick={() => onToggleFavorite(program.id)}
-                  className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors duration-300"
-                  aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
-                >
-                  <FaBookmark className={`${isFavorite ? 'text-yellow-400' : 'text-turquoise'} text-sm`} />
-                </button>
-              )}
-              {onToggleWatchLater && (
-                <button 
-                  onClick={() => onToggleWatchLater(program.id)}
-                  className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors duration-300"
-                  aria-label={isWatchLater ? "Remove from watch later" : "Add to watch later"}
-                >
-                  <FaClock className={`${isWatchLater ? 'text-yellow-400' : 'text-turquoise'} text-sm`} />
-                </button>
-              )}
+            <button 
+        onClick={handleToggleFavorite}
+        className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors duration-300"
+        aria-label={isFavorite ? "Remove from favorites" : "Add to favorites"}
+      >
+        <FaBookmark className={`${isFavorite ? 'text-yellow-400' : 'text-turquoise'} text-sm`} />
+      </button>
+      <button 
+        onClick={handleToggleWatchLater}
+        className="p-2 bg-gray-700 rounded-full hover:bg-gray-600 transition-colors duration-300"
+        aria-label={isWatchLater ? "Remove from watch later" : "Add to watch later"}
+      >
+        <FaClock className={`${isWatchLater ? 'text-yellow-400' : 'text-turquoise'} text-sm`} />
+      </button>
               <div className="relative">
                 <button 
                   onClick={toggleShareMenu}

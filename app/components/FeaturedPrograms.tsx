@@ -44,11 +44,11 @@ const NoPrograms: React.FC = () => (
 );
 
 interface FeaturedProgramsProps {
-  purchasedPrograms: Program[];
+  purchasedPrograms?: Program[];
 }
 
-const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ purchasedPrograms }) => {
-  const { featuredPrograms, isLoading, error, fetchFeaturedPrograms } = usePrograms();
+const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ purchasedPrograms = [] }) => {
+  const { featuredPrograms, isLoading, error, fetchFeaturedPrograms, userPrograms } = usePrograms();
   const [activeCategory, setActiveCategory] = useState('All');
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const { user } = useAuth();
@@ -72,13 +72,18 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ purchasedPrograms }
     }
     setSelectedProgram({
       ...program,
-      purchased_by_user: purchasedPrograms.some(p => p.id === program.id)
+      purchased_by_user: userPrograms.purchased_programs.some(p => p.id === program.id)
     });
   };
 
   const handleEnroll = () => {
     console.log('Enrolling in program:', selectedProgram?.title);
     setSelectedProgram(null);
+  };
+
+  const isProgramPurchased = (programId: number) => {
+    return purchasedPrograms.some(p => p.id === programId) || 
+           userPrograms.purchased_programs.some(p => p.id === programId);
   };
 
   if (isLoading) return <SkeletonLoader />;
@@ -127,13 +132,13 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ purchasedPrograms }
           <AnimatePresence>
             <div className="hidden md:grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredPrograms.map((program, index) => (
-                <ProgramCard 
-                  key={program.id} 
-                  program={program} 
-                  isFeatured={index === 0}
-                  onExplore={handleExplore} 
-                  isPurchased={program.purchased_by_user}
-                />
+               <ProgramCard 
+               key={program.id} 
+               program={program} 
+               isFeatured={index === 0}
+               onExplore={handleExplore} 
+               isPurchased={isProgramPurchased(program.id)}
+             />
               ))}
             </div>
           </AnimatePresence>
@@ -154,7 +159,7 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ purchasedPrograms }
                     program={program} 
                     isFeatured={false} 
                     onExplore={handleExplore}
-                    isPurchased={program.purchased_by_user}
+                    isPurchased={isProgramPurchased(program.id)}
                   />
                 </SwiperSlide>
               ))}

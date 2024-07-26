@@ -3,7 +3,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePrograms } from '../context/ProgramContext';
-import { ProgramCard } from './';
+import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Pagination, Autoplay } from 'swiper/modules';

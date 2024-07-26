@@ -4,6 +4,12 @@ import { Program } from '../types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+export interface UserPrograms {
+  purchased_programs: Program[];
+  favorite_programs: Program[];
+  watch_later_programs: Program[];
+}
+
 export const fetchUserPrograms = async (token: string, getIdToken: () => Promise<string | null>): Promise<{
   purchased_programs: Program[];
   favorite_programs: Program[];

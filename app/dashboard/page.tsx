@@ -1,28 +1,20 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import PurchasedPrograms from '../components/PurchasedPrograms';
 import Favorites from '../components/Favorites';
 import WatchLater from '../components/WatchLater';
 import FeaturedPrograms from '../components/FeaturedPrograms';
-import { fetchUserPrograms, fetchFeaturedPrograms } from '../utils/api';
-import { Program } from '../types';
+import { usePrograms } from '../context/ProgramContext';
 import { FaClock, FaShoppingCart, FaHeart, FaClock as FaWatchLater, FaUser } from 'react-icons/fa';
 
 const DashboardPage = () => {
-  const { user, loading, getIdToken } = useAuth();
+  const { user, loading } = useAuth();
   const router = useRouter();
-  const [userPrograms, setUserPrograms] = useState<{
-    purchased_programs: Program[];
-    favorite_programs: Program[];
-    watch_later_programs: Program[];
-  } | null>(null);
-  const [featuredPrograms, setFeaturedPrograms] = useState<Program[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { isLoading, error, userPrograms, fetchUserPrograms, fetchFeaturedPrograms } = usePrograms();
 
   useEffect(() => {
     if (loading) return;
@@ -32,33 +24,19 @@ const DashboardPage = () => {
       return;
     }
 
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const token = await getIdToken();
-        if (!token) {
-          throw new Error('No authentication token available');
-        }
+    fetchUserPrograms();
+    fetchFeaturedPrograms();
+  }, [user, loading, router, fetchUserPrograms, fetchFeaturedPrograms]);
 
-        const userProgramsData = await fetchUserPrograms(token, getIdToken);
-        setUserPrograms(userProgramsData);
+  useEffect(() => {
+    if (user && userPrograms) {
+      // You can add any additional logic here that needs to run when userPrograms changes
+      console.log('User programs updated:', userPrograms);
+    }
+  }, [user, userPrograms]);
 
-        const featuredProgramsData = await fetchFeaturedPrograms();
-        setFeaturedPrograms(featuredProgramsData);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-        setError('Failed to load dashboard data. Please try again.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
-  }, [user, loading, router, getIdToken]);
-
-  if (loading) return <div>Loading auth state...</div>;
+  if (loading || isLoading) return <div>Loading...</div>;
   if (!user) return null;
-  if (isLoading) return <div>Loading dashboard data...</div>;
   if (error) return <div>{error}</div>;
   if (!userPrograms) return <div>No user programs found.</div>;
 
@@ -94,7 +72,7 @@ const DashboardPage = () => {
 
       {/* Featured Programs Carousel */}
       <div className="mb-8">
-        <FeaturedPrograms purchasedPrograms={userPrograms.purchased_programs} />
+        <FeaturedPrograms />
       </div>
 
       {/* User's Purchased Programs */}
