@@ -1,47 +1,23 @@
 // app/page.tsx
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import { useAuth } from './context/AuthContext';
 import Link from 'next/link';
 import Banner from './components/Banner';
 import FeaturedPrograms from './components/FeaturedPrograms';
-import { fetchFeaturedPrograms, fetchUserPrograms } from './utils/api';
-import { Program } from './types';
+import { usePrograms } from './context/ProgramContext';
 
 export default function Home() {
-  const { user, getIdToken } = useAuth();
-  const [featuredPrograms, setFeaturedPrograms] = useState<Program[]>([]);
-  const [purchasedPrograms, setPurchasedPrograms] = useState<Program[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const { isLoading, error, fetchFeaturedPrograms, fetchUserPrograms } = usePrograms();
 
   useEffect(() => {
-    const loadPrograms = async () => {
-      try {
-        setIsLoading(true);
-        const programs = await fetchFeaturedPrograms();
-        setFeaturedPrograms(programs);
-
-        if (user) {
-          const token = await getIdToken();
-          if (token) {
-            const userProgramsData = await fetchUserPrograms(token, getIdToken);
-            setPurchasedPrograms(userProgramsData.purchased_programs);
-          } else {
-            console.warn('Failed to retrieve authentication token.');
-          }
-        }
-      } catch (err) {
-        console.error('Error fetching programs:', err);
-        setError('Failed to load programs');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadPrograms();
-  }, [user, getIdToken]);
+    fetchFeaturedPrograms();
+    if (user) {
+      fetchUserPrograms();
+    }
+  }, [user, fetchFeaturedPrograms, fetchUserPrograms]);
 
   return (
     <>
@@ -51,7 +27,7 @@ export default function Home() {
       ) : error ? (
         <div>{error}</div>
       ) : (
-        <FeaturedPrograms purchasedPrograms={purchasedPrograms} />
+        <FeaturedPrograms />
       )}
       {user && (
         <div className="text-center mt-8">

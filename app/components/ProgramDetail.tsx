@@ -1,6 +1,6 @@
 // app/components/ProgramDetail.tsx
 
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback, useEffect, lazy, Suspense } from "react";
 import Image from "next/image";
 import { toast } from "react-toastify";
 import {
@@ -14,23 +14,16 @@ import {
   FaCopy,
 } from "react-icons/fa";
 import { User, Program, Session } from "../types";
-import { Dialog, DialogTitle, DialogPanel } from "@headlessui/react";
 import { useAuth } from "../context/AuthContext";
-import SignInModal from "./SignInModal";
 import { trackSessionPlay } from "../utils/analytics";
 import { cacheGet, cacheSet } from "../utils/cache";
 import { PaymentService } from "../services/PaymentService";
-import { loadStripe } from "@stripe/stripe-js";
-import { toggleFavorite, toggleWatchLater } from "../utils/api";
+import { useProgramActions } from '../hooks/useProgramActions';
+import { FacebookShareButton, TwitterShareButton, EmailShareButton, FacebookIcon, TwitterIcon, EmailIcon } from "react-share";
 
-import {
-  FacebookShareButton,
-  TwitterShareButton,
-  EmailShareButton,
-  FacebookIcon,
-  TwitterIcon,
-  EmailIcon,
-} from "react-share";
+const InstructorModal = lazy(() => import("./InstructorModal"));
+const PlaybackModal = lazy(() => import("./PlaybackModal"));
+const SignInModal = lazy(() => import("./SignInModal"));
 
 interface ProgramDetailProps {
   program: Program;
@@ -38,93 +31,6 @@ interface ProgramDetailProps {
   onEnroll: () => void;
   isPurchased?: boolean;
 }
-
-interface InstructorModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  trainer: Program["trainer"];
-}
-
-const InstructorModal: React.FC<InstructorModalProps> = ({
-  isOpen,
-  onClose,
-  trainer,
-}) => (
-  <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-    <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-    <div className="fixed inset-0 flex items-center justify-center p-4">
-      <Dialog.Panel className="mx-auto max-w-sm rounded bg-gray-800 p-6 text-white">
-        <Dialog.Title className="text-lg font-medium leading-6 text-white">
-          {trainer.user.first_name} {trainer.user.last_name}
-        </Dialog.Title>
-        <div className="mt-2">
-          <Image
-            src={trainer.profile_picture || "/placeholder-avatar.jpg"}
-            alt={`${trainer.user.first_name} ${trainer.user.last_name}`}
-            width={100}
-            height={100}
-            className="rounded-full mx-auto mb-4"
-          />
-          <p className="text-sm text-gray-300">{trainer.bio}</p>
-        </div>
-        <button
-          onClick={onClose}
-          className="mt-4 inline-flex justify-center rounded-md border border-transparent bg-turquoise px-4 py-2 text-sm font-medium text-white hover:bg-turquoise-dark focus:outline-none focus-visible:ring-2 focus-visible:ring-turquoise-light focus-visible:ring-offset-2"
-        >
-          Close
-        </button>
-      </Dialog.Panel>
-    </div>
-  </Dialog>
-);
-
-const PlaybackModal: React.FC<{
-  isOpen: boolean;
-  onClose: () => void;
-  session: Session | null;
-}> = React.memo(({ isOpen, onClose, session }) => {
-  console.log("Rendering PlaybackModal", { isOpen, session });
-
-  if (!session) {
-    return null; // Don't render anything if there's no session
-  }
-
-  return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/30" aria-hidden="true" />
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <DialogPanel className="mx-auto max-w-3xl w-full bg-gray-800 rounded-lg p-6">
-          <DialogTitle className="text-2xl font-bold text-white mb-4">
-            {session.title}
-          </DialogTitle>
-          {session.video_url ? (
-            <video
-              key={session.id}
-              src={session.video_url}
-              controls
-              autoPlay
-              className="w-full rounded-lg"
-            />
-          ) : (
-            <p className="text-white">No video available for this session.</p>
-          )}
-          <button
-            onClick={onClose}
-            className="mt-4 bg-turquoise text-gray-900 px-4 py-2 rounded-full font-semibold hover:bg-white transition-all duration-300"
-          >
-            Close
-          </button>
-        </DialogPanel>
-      </div>
-    </Dialog>
-  );
-});
-
-PlaybackModal.displayName = "PlaybackModal";
-
-const stripePromise = loadStripe(
-  process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!
-);
 
 const ProgramDetail: React.FC<ProgramDetailProps> = ({
   program,
@@ -138,19 +44,13 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
   const [selectedSession, setSelectedSession] = useState<Session | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isFavorite, setIsFavorite] = useState<boolean>(
-    program.isFavorite || false
-  );
-  const [isWatchLater, setIsWatchLater] = useState<boolean>(
-    program.isWatchLater || false
-  );
+  
   const [isShareMenuOpen, setIsShareMenuOpen] = useState(false);
-  const [imgSrc, setImgSrc] = useState(
-    program.thumbnail || "/placeholder-image.jpg"
-  );
+  const [imgSrc, setImgSrc] = useState(program.thumbnail || "/placeholder-image.jpg");
   const { user } = useAuth() as { user: User | null };
 
-  // Define share URL and title
+  const { isFavorite, isWatchLater, handleToggleFavorite, handleToggleWatchLater } = useProgramActions(program.id);
+
   const shareUrl = `${window.location.origin}/programs/${program.id}`;
   const shareTitle = `Check out this program: ${program.title}`;
 
@@ -177,52 +77,42 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
     }
   }, [user, program.id]);
 
-  const handlePlaySession = useCallback(
-    async (session: Session) => {
-      console.log("handlePlaySession called", { session, user });
-      setError(null);
+  const handlePlaySession = useCallback(async (session: Session) => {
+    setError(null);
 
-      if (!user) {
-        console.log("User not authenticated, opening sign-in modal");
+    if (!user) {
+      setSelectedSession(session);
+      setIsSignInModalOpen(true);
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const isFirstSession = session.order === 1;
+      const isSingleSessionProgram = program.sessions.length === 1;
+
+      if (isFirstSession || isSingleSessionProgram) {
         setSelectedSession(session);
-        setIsSignInModalOpen(true);
-        return;
-      }
-
-      setIsLoading(true);
-
-      try {
-        const isFirstSession = session.order === 1;
-        const isSingleSessionProgram = program.sessions.length === 1;
-
-        if (isFirstSession || isSingleSessionProgram) {
-          console.log("Playing session", session);
+        setIsPlaybackModalOpen(true);
+        trackSessionPlay(user.id, program.id, session.id);
+      } else {
+        const isPurchased = await checkPurchaseStatus();
+        if (isPurchased) {
           setSelectedSession(session);
           setIsPlaybackModalOpen(true);
           trackSessionPlay(user.id, program.id, session.id);
         } else {
-          const isPurchased = await checkPurchaseStatus();
-          if (isPurchased) {
-            console.log("Playing purchased session", session);
-            setSelectedSession(session);
-            setIsPlaybackModalOpen(true);
-            trackSessionPlay(user.id, program.id, session.id);
-          } else {
-            console.log("Redirecting to purchase for locked session");
-            onEnroll();
-          }
+          onEnroll();
         }
-      } catch (error) {
-        console.error("Error playing session:", error);
-        setError(
-          "An error occurred while trying to play the session. Please try again."
-        );
-      } finally {
-        setIsLoading(false);
       }
-    },
-    [user, program, checkPurchaseStatus, onEnroll]
-  );
+    } catch (error) {
+      console.error("Error playing session:", error);
+      setError("An error occurred while trying to play the session. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, program, checkPurchaseStatus, onEnroll]);
 
   const handlePurchase = useCallback(async () => {
     if (!user || !user.id) {
@@ -233,7 +123,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
     setIsLoading(true);
     try {
       await PaymentService.createCheckoutSession(program.id);
-      // The redirect to Stripe should be handled within the PaymentService
     } catch (error) {
       setError("An unexpected error occurred. Please try again.");
       console.error("Purchase error:", error);
@@ -243,44 +132,22 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
   }, [user, program.id]);
 
   const handleSignInSuccess = useCallback(() => {
-    console.log("Sign-in successful, retrying last action");
     setIsSignInModalOpen(false);
     if (selectedSession) {
       handlePlaySession(selectedSession);
     }
   }, [selectedSession, handlePlaySession]);
 
-  const toggleFavoriteHandler = useCallback(async () => {
-    try {
-      await toggleFavorite(program.id);
-      setIsFavorite(!isFavorite);
-    } catch (error) {
-      console.error("Error toggling favorite:", error);
-    }
-  }, [program.id, isFavorite]);
-
-  const toggleWatchLaterHandler = useCallback(async () => {
-    try {
-      await toggleWatchLater(program.id);
-      setIsWatchLater(!isWatchLater);
-    } catch (error) {
-      console.error("Error toggling watch later:", error);
-    }
-  }, [program.id, isWatchLater]);
+  const toggleFavoriteHandler = handleToggleFavorite;
+  const toggleWatchLaterHandler = handleToggleWatchLater;
 
   useEffect(() => {
     if (user && selectedSession && !isPlaybackModalOpen) {
-      console.log("User authenticated and session selected, playing session");
       handlePlaySession(selectedSession);
     }
   }, [user, selectedSession, isPlaybackModalOpen, handlePlaySession]);
 
-  useEffect(() => {
-    console.log("selectedSession changed:", selectedSession);
-  }, [selectedSession]);
-
   const handleClosePlaybackModal = useCallback(() => {
-    console.log("Closing playback modal");
     setIsPlaybackModalOpen(false);
     setSelectedSession(null);
   }, []);
@@ -298,11 +165,6 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
         toast.error('Failed to copy the link.');
       });
   };
-
-  console.log("Rendering ProgramDetail", {
-    isPlaybackModalOpen,
-    selectedSession,
-  });
 
   return (
     <div className="bg-gray-900 min-h-screen text-white">
@@ -355,65 +217,63 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
             <p className="text-gray-300 mb-8">{program.full_description}</p>
 
             <div className="flex space-x-4 mb-6">
-    <button 
-      onClick={toggleFavoriteHandler}
+            <button 
+      onClick={handleToggleFavorite}
       className={`p-2 rounded-full transition duration-300 ${isFavorite ? 'bg-red-500 text-white' : 'bg-gray-700 text-turquoise hover:bg-gray-600'}`}
       aria-label="Toggle Favorite"
     >
       <FaHeart className="text-xl" />
     </button>
     <button 
-      onClick={toggleWatchLaterHandler}
+      onClick={handleToggleWatchLater}
       className={`p-2 rounded-full transition duration-300 ${isWatchLater ? 'bg-blue-500 text-white' : 'bg-gray-700 text-turquoise hover:bg-gray-600'}`}
       aria-label="Toggle Watch Later"
     >
       <FaClock className="text-xl" />
     </button>
-    <div className="relative">
-      <button 
-        onClick={toggleShareMenu}
-        className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition duration-300"
-        aria-label="Share Program"
-      >
-        <FaShareAlt className="text-xl text-turquoise" />
-      </button>
-      {isShareMenuOpen && (
-        <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg p-2">
-          <FacebookShareButton url={shareUrl}>
-            <div className="flex items-center">
-              <FacebookIcon size={32} round />
-              <span className="ml-2">Facebook</span>
+              <div className="relative">
+                <button 
+                  onClick={toggleShareMenu}
+                  className="p-2 rounded-full bg-gray-700 hover:bg-gray-600 transition duration-300"
+                  aria-label="Share Program"
+                >
+                  <FaShareAlt className="text-xl text-turquoise" />
+                </button>
+                {isShareMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-gray-800 rounded-lg shadow-lg p-2">
+                    <FacebookShareButton url={shareUrl}>
+                      <div className="flex items-center">
+                        <FacebookIcon size={32} round />
+                        <span className="ml-2">Facebook</span>
+                      </div>
+                    </FacebookShareButton>
+                    <TwitterShareButton url={shareUrl}>
+                      <div className="flex items-center">
+                        <TwitterIcon size={32} round />
+                        <span className="ml-2">Twitter</span>
+                      </div>
+                    </TwitterShareButton>
+                    <EmailShareButton url={shareUrl}>
+                      <div className="flex items-center">
+                        <EmailIcon size={32} round />
+                        <span className="ml-2">Email</span>
+                      </div>
+                    </EmailShareButton>
+                    <button 
+                      onClick={handleCopyLink} 
+                      className="flex items-center p-2 rounded bg-gray-700 hover:bg-gray-600 text-white transition duration-300 w-full"
+                    >
+                      <FaCopy className="mr-2" />
+                      Copy Link
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </FacebookShareButton>
-          <TwitterShareButton url={shareUrl}>
-            <div className="flex items-center">
-              <TwitterIcon size={32} round />
-              <span className="ml-2">Twitter</span>
-            </div>
-          </TwitterShareButton>
-          <EmailShareButton url={shareUrl}>
-            <div className="flex items-center">
-              <EmailIcon size={32} round />
-              <span className="ml-2">Email</span>
-            </div>
-          </EmailShareButton>
-          <button 
-            onClick={handleCopyLink} 
-            className="flex items-center p-2 rounded bg-gray-700 hover:bg-gray-600 text-white transition duration-300 w-full"
-          >
-            <FaCopy className="mr-2" />
-            Copy Link
-          </button>
-        </div>
-      )}
-    </div>
-  </div>
             <h2 className="text-2xl font-bold mb-4">About the Instructor</h2>
             <div className="flex items-center mb-4">
               <Image
-                src={
-                  program.trainer.profile_picture || "/placeholder-avatar.jpg"
-                }
+                src={program.trainer.profile_picture || "/placeholder-avatar.jpg"}
                 alt={`${program.trainer.user.first_name} ${program.trainer.user.last_name}`}
                 width={60}
                 height={60}
@@ -422,8 +282,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
               />
               <div>
                 <h3 className="text-xl font-semibold">
-                  {program.trainer.user.first_name}{" "}
-                  {program.trainer.user.last_name}
+                  {program.trainer.user.first_name} {program.trainer.user.last_name}
                 </h3>
                 <button
                   onClick={() => setIsInstructorModalOpen(true)}
@@ -472,23 +331,31 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
         </div>
       </div>
 
-      <InstructorModal
-        isOpen={isInstructorModalOpen}
-        onClose={() => setIsInstructorModalOpen(false)}
-        trainer={program.trainer}
-      />
+      <Suspense fallback={<div>Loading...</div>}>
+        {isInstructorModalOpen && (
+          <InstructorModal
+            isOpen={isInstructorModalOpen}
+            onClose={() => setIsInstructorModalOpen(false)}
+            trainer={program.trainer}
+          />
+        )}
 
-      <SignInModal
-        isOpen={isSignInModalOpen}
-        onClose={() => setIsSignInModalOpen(false)}
-        onSignInSuccess={handleSignInSuccess}
-      />
+        {isSignInModalOpen && (
+          <SignInModal
+            isOpen={isSignInModalOpen}
+            onClose={() => setIsSignInModalOpen(false)}
+            onSignInSuccess={handleSignInSuccess}
+          />
+        )}
 
-      <PlaybackModal
-        isOpen={isPlaybackModalOpen}
-        onClose={handleClosePlaybackModal}
-        session={selectedSession}
-      />
+        {isPlaybackModalOpen && (
+          <PlaybackModal
+            isOpen={isPlaybackModalOpen}
+            onClose={handleClosePlaybackModal}
+            session={selectedSession}
+          />
+        )}
+      </Suspense>
 
       {isLoading && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
