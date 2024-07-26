@@ -1,7 +1,7 @@
 // app/dashboard/page.tsx
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import PurchasedPrograms from '../components/PurchasedPrograms';
@@ -14,7 +14,14 @@ import { FaClock, FaShoppingCart, FaHeart, FaClock as FaWatchLater, FaUser } fro
 const DashboardPage = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
-  const { isLoading, error, userPrograms, fetchUserPrograms, fetchFeaturedPrograms } = usePrograms();
+  const { isLoading, error, userPrograms, fetchUserPrograms, fetchFeaturedPrograms, refreshUserPrograms } = usePrograms();
+
+  const refreshData = useCallback(async () => {
+    if (user) {
+      await refreshUserPrograms();
+      await fetchFeaturedPrograms();
+    }
+  }, [user, refreshUserPrograms, fetchFeaturedPrograms]);
 
   useEffect(() => {
     if (loading) return;
@@ -24,13 +31,17 @@ const DashboardPage = () => {
       return;
     }
 
-    fetchUserPrograms();
-    fetchFeaturedPrograms();
-  }, [user, loading, router, fetchUserPrograms, fetchFeaturedPrograms]);
+    refreshData();
+
+    // Set up an interval to refresh data every 30 seconds
+    const intervalId = setInterval(refreshData, 30000);
+
+    // Clean up the interval when the component unmounts
+    return () => clearInterval(intervalId);
+  }, [user, loading, router, refreshData]);
 
   useEffect(() => {
     if (user && userPrograms) {
-      // You can add any additional logic here that needs to run when userPrograms changes
       console.log('User programs updated:', userPrograms);
     }
   }, [user, userPrograms]);
