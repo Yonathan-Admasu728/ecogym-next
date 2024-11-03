@@ -1,31 +1,14 @@
-// app/context/AuthContext.tsx
-'use client';
+"use client";
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
-import {
-  User as FirebaseUser,
-  UserCredential,
-  signInWithPopup,
-  GoogleAuthProvider,
-  FacebookAuthProvider,
-  OAuthProvider,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut as firebaseSignOut,
-} from 'firebase/auth';
-import { auth } from '../libraries/firebase';
-import { User } from '../types';
+import { initializeApp, FirebaseApp } from 'firebase/app';
+import { getAuth, Auth, User, GoogleAuthProvider, signInWithPopup, signOut as firebaseSignOut, onAuthStateChanged } from 'firebase/auth';
 
 interface AuthContextType {
   user: User | null;
   loading: boolean;
-  signInWithGoogle: () => Promise<void>;
-  signInWithFacebook: () => Promise<void>;
-  signInWithApple: () => Promise<void>;
-  signUpWithEmail: (email: string, password: string) => Promise<void>;
-  signInWithEmail: (email: string, password: string) => Promise<void>;
+  error: string | null;
+  signIn: () => Promise<void>;
   signOut: () => Promise<void>;
   getIdToken: () => Promise<string | null>;
 }
@@ -36,157 +19,94 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isSigningIn, setIsSigningIn] = useState<boolean>(false);
+  const [firebaseApp, setFirebaseApp] = useState<FirebaseApp | null>(null);
+  const [firebaseAuth, setFirebaseAuth] = useState<Auth | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        try {
-          const token = await firebaseUser.getIdToken(true);
-          localStorage.setItem('authToken', token);
-          const userObj = convertFirebaseUserToUser(firebaseUser);
-          setUser(userObj);
-          localStorage.setItem('user', JSON.stringify(userObj));
-          await authenticateWithDjango(token);
-        } catch (error) {
-          console.error('Error during authentication', error);
-          setError('Failed to authenticate');
-        }
-      } else {
-        localStorage.removeItem('authToken');
-        localStorage.removeItem('user');
-        setUser(null);
-      }
-      setLoading(false); // Set loading to false after auth state changes
-    });
+    const loadFirebase = async () => {
+      try {
+        const firebaseConfig = {
+          apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+          authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+          projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+          storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+          messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+          appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID,
+        };
 
-    const refreshTokenInterval = setInterval(async () => {
-      const currentUser = auth.currentUser;
-      if (currentUser) {
-        try {
-          const token = await currentUser.getIdToken(true);
-          console.log('Token refreshed');
-          localStorage.setItem('authToken', token);
-          await authenticateWithDjango(token);
-        } catch (error) {
-          console.error('Error refreshing token', error);
-        }
-      }
-    }, 55 * 60 * 1000);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
 
-    return () => {
-      unsubscribe();
-      clearInterval(refreshTokenInterval);
+        setFirebaseApp(app);
+        setFirebaseAuth(auth);
+
+        onAuthStateChanged(auth, (user: User | null) => {
+          setUser(user);
+          setLoading(false);
+        });
+      } catch (error) {
+        console.error('Firebase initialization error:', error);
+        setError('Failed to initialize Firebase. Please try again later.');
+        setLoading(false);
+      }
     };
+
+    loadFirebase();
   }, []);
 
-  const convertFirebaseUserToUser = (firebaseUser: FirebaseUser): User => ({
-    id: firebaseUser.uid,
-    email: firebaseUser.email || '',
-    first_name: firebaseUser.displayName ? firebaseUser.displayName.split(' ')[0] : '',
-    last_name: firebaseUser.displayName ? firebaseUser.displayName.split(' ').slice(1).join(' ') : '',
-    displayName: firebaseUser.displayName || '',
-    photo_url: firebaseUser.photoURL || '',
-    metadata: {
-      creationTime: firebaseUser.metadata.creationTime || '',
-      lastLoginTime: firebaseUser.metadata.lastSignInTime || '',
-    },
-  });
+  const signIn = async () => {
+    if (!firebaseAuth) {
+      setError('Authentication is not initialized');
+      return;
+    }
 
-  const handleSignIn = async (methodName: string, method: () => Promise<UserCredential>) => {
-    setError(null);
-    setIsSigningIn(true);
     try {
-      const userCredential = await method();
-      const idToken = await userCredential.user.getIdToken();
-      if (idToken) {
-        console.log(`Retrieved ID Token for ${methodName}:`, idToken);
-        await authenticateWithDjango(idToken);
-        const userObj = convertFirebaseUserToUser(userCredential.user);
-        setUser(userObj);  // Make sure this line is here
-      } else {
-        throw new Error('Failed to obtain ID token');
-      }
-    } catch (err) {
-      console.error(`Sign in with ${methodName} failed`, err);
-      setError(`Sign in with ${methodName} failed`);
-    } finally {
-      setIsSigningIn(false);
+      setError(null);
+      const provider = new GoogleAuthProvider();
+      await signInWithPopup(firebaseAuth, provider);
+    } catch (error) {
+      console.error('Sign-in error:', error);
+      setError('Failed to sign in. Please try again.');
     }
   };
-
-  const authenticateWithDjango = async (idToken: string) => {
-    try {
-      const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL}/api/users/login/`, {
-        id_token: idToken,
-      });
-      console.log('Authentication successful:', response.data);
-    } catch (err) {
-      const error = err as any;
-      console.error('Authentication failed:', error.response ? error.response.data : error.message);
-      setError('Failed to authenticate with server');
-    }
-  };
-
-  const signInWithGoogle = () => handleSignIn('Google', async () => {
-    const provider = new GoogleAuthProvider();
-    return signInWithPopup(auth, provider);
-  });
-
-  const signInWithFacebook = () => handleSignIn('Facebook', async () => {
-    const provider = new FacebookAuthProvider();
-    return signInWithPopup(auth, provider);
-  });
-
-  const signInWithApple = () => handleSignIn('Apple', async () => {
-    const provider = new OAuthProvider('apple.com');
-    return signInWithPopup(auth, provider);
-  });
-
-  const signUpWithEmail = (email: string, password: string) => 
-    handleSignIn('Email signup', () => createUserWithEmailAndPassword(auth, email, password));
-
-  const signInWithEmail = (email: string, password: string) => 
-    handleSignIn('Email signin', () => signInWithEmailAndPassword(auth, email, password));
 
   const signOut = async () => {
-    await firebaseSignOut(auth);
+    if (!firebaseAuth) {
+      setError('Authentication is not initialized');
+      return;
+    }
+
+    try {
+      setError(null);
+      await firebaseSignOut(firebaseAuth);
+    } catch (error) {
+      console.error('Sign-out error:', error);
+      setError('Failed to sign out. Please try again.');
+    }
   };
 
   const getIdToken = async (): Promise<string | null> => {
-    const currentUser = auth.currentUser;
-    if (currentUser) {
-      try {
-        const token = await currentUser.getIdToken(true); // Forces refresh of the token
-        console.log("Retrieved token:", token.substring(0, 10) + "...");
-        return token;
-      } catch (error) {
-        console.error('Error getting ID token:', error);
-        setError('Failed to get ID token');
-        return null;
-      }
+    if (!user) {
+      return null;
     }
-    console.log("No current user");
-    return null;
+    try {
+      return await user.getIdToken();
+    } catch (error) {
+      console.error('Error getting ID token:', error);
+      return null;
+    }
   };
 
-  return (
-    <AuthContext.Provider
-      value={{
-        user,
-        loading,
-        signInWithGoogle,
-        signInWithFacebook,
-        signInWithApple,
-        signUpWithEmail,
-        signInWithEmail,
-        signOut,
-        getIdToken,
-      }}
-    >
-      {children}
-    </AuthContext.Provider>
-  );
+  const value = {
+    user,
+    loading,
+    error,
+    signIn,
+    signOut,
+    getIdToken,
+  };
+
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export const useAuth = () => {

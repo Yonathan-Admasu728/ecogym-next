@@ -3,216 +3,70 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --foreground-rgb: 255, 255, 255;
+  --background-start-rgb: 13, 27, 42;
+  --background-end-rgb: 27, 38, 59;
+  --accent-color: 64, 224, 208;
+  --secondary-color: 119, 141, 169;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
+@layer base {
+  body {
+    @apply text-white bg-darkBlue-900;
+    font-family: var(--font-inter), sans-serif;
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-poppins), sans-serif;
   }
 }
 
-body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+@layer components {
+  .btn-primary {
+    @apply bg-turquoise-500 text-darkBlue-900 font-semibold py-3 px-6 rounded-full shadow-md hover:bg-turquoise-400 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .btn-secondary {
+    @apply bg-transparent border-2 border-turquoise-400 text-turquoise-400 font-semibold py-3 px-6 rounded-full shadow-md hover:bg-turquoise-400 hover:text-darkBlue-900 transition duration-300 ease-in-out transform hover:-translate-y-1 hover:shadow-lg;
+  }
+
+  .card {
+    @apply bg-darkBlue-800 bg-opacity-50 backdrop-filter backdrop-blur-lg rounded-xl shadow-lg p-6 transition duration-300 ease-in-out hover:shadow-xl hover:shadow-turquoise-400/20;
+  }
+
+  .section-title {
+    @apply text-4xl font-bold mb-8 text-center text-white font-heading;
+  }
+
+  .section-subtitle {
+    @apply text-xl mb-12 text-center text-lightBlue-100 max-w-2xl mx-auto;
+  }
 }
 
 @layer utilities {
-  .text-balance {
-    text-wrap: balance;
-  }
-}
-
-@keyframes pulse {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.5;
-  }
-}
-
-.featured-programs {
-  position: relative;
-}
-
-.featured-programs::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: url('/images/ecogym-logo.png');
-  background-repeat: no-repeat;
-  background-position: center;
-  background-size: 50%;
-  opacity: 0.05;
-  pointer-events: none;
-}
-
-.program-image {
-  transition: transform 0.3s ease-in-out;
-}
-
-.program-image:hover {
-  transform: scale(1.05);
-}
-
-.text-shadow {
-  text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-}
-
-.animate-pulse {
-  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-}
-
-@media (max-width: 640px) {
-  .featured-programs {
-    /* Adjust the background size for mobile */
-    background-size: 150%;
-  }
-
   .text-shadow {
-    /* Enhance text shadow for better readability on mobile */
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+  }
+
+  .bg-gradient {
+    background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
   }
 }
 
-@media (min-width: 1024px) {
-  .featured-programs .program-image {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-  }
+/* Custom scrollbar styles */
+::-webkit-scrollbar {
+  width: 10px;
 }
 
-
-
-.swiper-pagination-bullet {
-  background: white !important;
+::-webkit-scrollbar-track {
+  background: rgb(var(--background-start-rgb));
 }
 
-.swiper-pagination-bullet-active {
-  background: #40E0D0 !important;
+::-webkit-scrollbar-thumb {
+  background: rgb(var(--accent-color));
+  border-radius: 5px;
 }
 
-
-
-/* global.css */
-.container {
-  max-width: 1200px;
-  margin: 0 auto;
-}
-
-.section {
-  padding: 20px 0;
-}
-
-.section h2 {
-  border-bottom: 2px solid #4fd1c5; /* turquoise color */
-  padding-bottom: 10px;
-}
-
-.section + .section {
-  border-top: 1px solid #333;
-  padding-top: 20px;
-}
-
-
-
-
-/* Navigation Bar Styles */
-.bg-gray-800 {
-  background-color: #2d3748; /* Customize as needed */
-}
-.text-turquoise {
-  color: #38b2ac; /* Customize as needed */
-}
-.flex {
-  display: flex;
-}
-.justify-around {
-  justify-content: space-around;
-}
-.items-center {
-  align-items: center;
-}
-.p-4 {
-  padding: 1rem;
-}
-.rounded-lg {
-  border-radius: 0.5rem;
-}
-.mb-8 {
-  margin-bottom: 2rem;
-}
-.text-2xl {
-  font-size: 1.5rem;
-}
-.mb-1 {
-  margin-bottom: 0.25rem;
-}
-
-/* Welcome Message Styles */
-.text-center {
-  text-align: center;
-}
-.text-3xl {
-  font-size: 2rem;
-}
-.font-bold {
-  font-weight: bold;
-}
-.text-gray-500 {
-  color: #a0aec0; /* Customize as needed */
-}
-
-/* Section Titles */
-.text-2xl {
-  font-size: 1.5rem;
-}
-.mb-4 {
-  margin-bottom: 1rem;
-}
-
-/* Profile Page Styles */
-.container {
-  max-width: 800px;
-  margin: 0 auto;
-}
-.bg-gray-800 {
-  background-color: #2d3748;
-}
-.text-turquoise {
-  color: #38b2ac;
-}
-.text-white {
-  color: #fff;
-}
-.text-sm {
-  font-size: 0.875rem;
-}
-.font-bold {
-  font-weight: bold;
-}
-.mb-4 {
-  margin-bottom: 1rem;
-}
-.p-6 {
-  padding: 1.5rem;
-}
-.rounded-lg {
-  border-radius: 0.5rem;
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(var(--accent-color), 0.8);
 }

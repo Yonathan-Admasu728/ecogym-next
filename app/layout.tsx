@@ -1,62 +1,28 @@
-// app/layout.tsx
-import { Metadata } from 'next';
-import { Inter } from 'next/font/google';
-import Header from './components/Header';
-import Footer from './components/Footer';
-import { AuthProvider } from './context/AuthContext';
-import { ProgramProvider } from './context/ProgramContext';
-import { ToastContainer } from 'react-toastify';
+import './globals.css'
 import 'react-toastify/dist/ReactToastify.css';
-import './globals.css';
+import type { Metadata } from 'next'
+import { Inter, Poppins } from 'next/font/google'
+import { AuthProvider } from './context/AuthContext'
+import { ProgramProvider } from './context/ProgramContext'
+import { ToastContainer } from 'react-toastify'
+import Header from './components/Header'
+import Footer from './components/Footer'
 
-const inter = Inter({ subsets: ['latin'] });
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter',
+})
+
+const poppins = Poppins({
+  weight: ['400', '600', '700'],
+  subsets: ['latin'],
+  variable: '--font-poppins',
+})
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://ecogym.space'),
-  title: {
-    default: 'Eco Gym',
-    template: '%s | Eco Gym'
-  },
-  description: 'Eco Gym: Elevate your fitness journey with top-rated coaches and curated guided meditations.',
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/apple-icon.png',
-  },
-  openGraph: {
-    type: 'website',
-    locale: 'en_US',
-    url: 'https://ecogym.space',
-    siteName: 'Eco Gym',
-    title: 'Eco Gym',
-    description: 'Elevate your fitness journey with top-rated coaches and curated guided meditations. Discover a space for self-care and transformation.',
-    images: [
-      {
-        url: '/og-image.jpg',
-        width: 1200,
-        height: 630,
-        alt: 'Eco Gym',
-      },
-    ],
-  },
-  twitter: {
-    card: 'summary_large_image',
-    title: 'Eco Gym',
-    description: 'Elevate your fitness journey with top-rated coaches and curated guided meditations. Discover a space for self-care and transformation.',
-    images: ['/og-image.jpg'],
-    creator: '@ecogym',
-  },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-      'max-video-preview': -1,
-      'max-image-preview': 'large',
-      'max-snippet': -1,
-    },
-  },
-};
+  title: 'EcoGym - Transform Your Mind and Body',
+  description: 'EcoGym offers expert-led meditation, mindfulness, and home workout programs to help you achieve holistic wellness, anytime and anywhere.',
+}
 
 export default function RootLayout({
   children,
@@ -65,16 +31,31 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${poppins.variable} font-sans bg-darkBlue-900 text-white`}>
         <AuthProvider>
           <ProgramProvider>
-            <Header />
-            <main id="main">{children}</main>
-            <Footer />
-            <ToastContainer />
+            <div className="flex flex-col min-h-screen">
+              <Header />
+              <main className="flex-grow">
+                {children}
+              </main>
+              <Footer />
+            </div>
+            <ToastContainer
+              position="bottom-right"
+              autoClose={5000}
+              hideProgressBar={false}
+              newestOnTop={false}
+              closeOnClick
+              rtl={false}
+              pauseOnFocusLoss
+              draggable
+              pauseOnHover
+              theme="dark"
+            />
           </ProgramProvider>
         </AuthProvider>
       </body>
     </html>
-  );
+  )
 }

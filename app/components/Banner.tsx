@@ -11,9 +11,9 @@ const Banner = () => {
   const { ref, inView } = useInView({ threshold: 0 });
   const [currentTextIndex, setCurrentTextIndex] = useState(0);
   const textOptions = [
-    "Transform Your Body",
-    "Calm Your Mind",
-    "Elevate Your Spirit"
+    "Mindful Meditation",
+    "Energizing Workouts",
+    "Holistic Wellness"
   ];
 
   const rotateText = useCallback(() => {
@@ -51,7 +51,7 @@ const Banner = () => {
         playsInline
         poster="/images/fallback2.png"
       >
-        <source src="https://res.cloudinary.com/dctjqcupv/video/upload/v1/banner2_nhffpp" type="video/mp4" />
+        <source src="/videos/banner2.mp4" type="video/mp4" />
         Your browser does not support the video tag.
       </video>
       <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/50 to-black/70"></div>
@@ -63,7 +63,7 @@ const Banner = () => {
           variants={fadeInUpVariants}
           transition={{ duration: 0.6 }}
         >
-          Welcome to Ecogym
+          Elevate Your Wellbeing
         </motion.h1>
         <div className="bg-black bg-opacity-30 p-4 rounded-lg mb-8">
           <AnimatePresence mode="wait">
@@ -86,9 +86,9 @@ const Banner = () => {
           variants={fadeInUpVariants}
           transition={{ duration: 0.6, delay: 0.4 }}
         >
-          Join our community of wellness seekers and experience 
-          <span className="text-turquoise font-semibold"> personalized fitness journeys </span> 
-          guided by expert coaches.
+          Unlock your potential with our 
+          <span className="text-turquoise font-semibold"> expert-led guided meditations and invigorating fitness programs</span>. 
+          Transform your mind and body from the comfort of your home.
         </motion.p>
         <motion.div
           initial="hidden"
@@ -97,10 +97,10 @@ const Banner = () => {
           transition={{ duration: 0.6, delay: 0.6 }}
         >
           <Link 
-            href="/dashboard" 
+            href="/#featured-programs" 
             className="bg-turquoise text-white px-8 py-4 rounded-full text-xl font-semibold hover:bg-white hover:text-turquoise transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            Start Your Journey Today
+            Discover Your Path to Wellness
           </Link>
         </motion.div>
       </div>

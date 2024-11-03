@@ -1,35 +1,47 @@
-// app/hooks/useProgramActions.ts
+import { useState, useCallback } from 'react';
+import { toast } from 'react-toastify';
 
-import { useCallback, useState, useEffect } from 'react';
-import { usePrograms } from '../context/ProgramContext';
+export const useProgramActions = () => {
+  const [favorites, setFavorites] = useState<Set<string>>(new Set());
+  const [watchLater, setWatchLater] = useState<Set<string>>(new Set());
 
-export const useProgramActions = (programId: number) => {
-  const { userPrograms, toggleFavorite, toggleWatchLater, refreshUserPrograms } = usePrograms();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [isWatchLater, setIsWatchLater] = useState(false);
+  const handleToggleFavorite = useCallback((programId: string) => {
+    setFavorites((prev) => {
+      const newFavorites = new Set(prev);
+      if (newFavorites.has(programId)) {
+        newFavorites.delete(programId);
+        toast.success('Removed from favorites');
+      } else {
+        newFavorites.add(programId);
+        toast.success('Added to favorites');
+      }
+      return newFavorites;
+    });
+    // Here you would typically make an API call to update the user's favorites
+  }, []);
 
-  useEffect(() => {
-    if (userPrograms) {
-      setIsFavorite(userPrograms.favorite_programs.some(p => p.id === programId));
-      setIsWatchLater(userPrograms.watch_later_programs.some(p => p.id === programId));
-    }
-  }, [userPrograms, programId]);
+  const handleToggleWatchLater = useCallback((programId: string) => {
+    setWatchLater((prev) => {
+      const newWatchLater = new Set(prev);
+      if (newWatchLater.has(programId)) {
+        newWatchLater.delete(programId);
+        toast.success('Removed from watch later');
+      } else {
+        newWatchLater.add(programId);
+        toast.success('Added to watch later');
+      }
+      return newWatchLater;
+    });
+    // Here you would typically make an API call to update the user's watch later list
+  }, []);
 
-  const handleToggleFavorite = useCallback(async () => {
-    if (toggleFavorite) {
-      await toggleFavorite(programId);
-      setIsFavorite(prev => !prev);
-      await refreshUserPrograms();
-    }
-  }, [programId, toggleFavorite, refreshUserPrograms]);
+  const isFavorite = useCallback((programId: string) => favorites.has(programId), [favorites]);
+  const isWatchLater = useCallback((programId: string) => watchLater.has(programId), [watchLater]);
 
-  const handleToggleWatchLater = useCallback(async () => {
-    if (toggleWatchLater) {
-      await toggleWatchLater(programId);
-      setIsWatchLater(prev => !prev);
-      await refreshUserPrograms();
-    }
-  }, [programId, toggleWatchLater, refreshUserPrograms]);
-
-  return { isFavorite, isWatchLater, handleToggleFavorite, handleToggleWatchLater };
+  return {
+    isFavorite,
+    isWatchLater,
+    handleToggleFavorite,
+    handleToggleWatchLater,
+  };
 };

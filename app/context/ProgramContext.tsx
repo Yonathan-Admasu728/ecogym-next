@@ -1,91 +1,84 @@
-// app/context/ProgramContext.tsx
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Program } from '../types';
 import { 
-  fetchPrograms, 
-  fetchFeaturedPrograms, 
-  fetchUserPrograms, 
+  fetchPrograms as apiFetchPrograms, 
+  fetchFeaturedPrograms as apiFetchFeaturedPrograms, 
+  fetchUserPrograms as apiFetchUserPrograms, 
   toggleFavorite, 
   toggleWatchLater,
   UserPrograms
 } from '../utils/api';
+import { eventBus } from '../utils/eventBus';
 import { useAuth } from '../context/AuthContext';
 
 interface ProgramContextType {
   allPrograms: Program[];
   featuredPrograms: Program[];
+  recommendedPrograms: Program[];
   userPrograms: UserPrograms;
   isLoading: boolean;
   error: string | null;
   fetchAllPrograms: () => Promise<void>;
   fetchFeaturedPrograms: () => Promise<void>;
+  fetchRecommendedPrograms: () => Promise<void>;
   fetchUserPrograms: () => Promise<void>;
   toggleFavorite: (programId: number) => Promise<void>;
   toggleWatchLater: (programId: number) => Promise<void>;
   updateUserPrograms: (updatedPrograms: Partial<UserPrograms>) => void;
   refreshUserPrograms: () => Promise<void>;
+  isPurchased: (programId: string) => boolean;
 }
 
 const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
 
+const useApiCache = <T,>(fetcher: () => Promise<T>) => {
+  const [data, setData] = useState<T | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    if (data) return; // Return if data is already cached
+    setIsLoading(true);
+    setError(null);
+    try {
+      const result = await fetcher();
+      setData(result);
+    } catch (err) {
+      setError('Failed to fetch data. Please try again later.');
+      console.error('Error fetching data:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [data, fetcher]);
+
+  return { data, isLoading, error, fetchData };
+};
+
 export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { getIdToken } = useAuth();
-  const [allPrograms, setAllPrograms] = useState<Program[]>([]);
-  const [featuredPrograms, setFeaturedPrograms] = useState<Program[]>([]);
   const [userPrograms, setUserPrograms] = useState<UserPrograms>({
     purchased_programs: [],
     favorite_programs: [],
     watch_later_programs: [],
   });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchAllPrograms = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const programs = await fetchPrograms();
-      setAllPrograms(programs);
-    } catch (error) {
-      console.error('Error fetching all programs:', error);
-      setError('Failed to load programs. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  const fetchFeaturedProgramsCallback = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const programs = await fetchFeaturedPrograms();
-      setFeaturedPrograms(programs);
-    } catch (error) {
-      console.error('Error fetching featured programs:', error);
-      setError('Failed to load featured programs. Please try again later.');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
+  const allProgramsCache = useApiCache(apiFetchPrograms);
+  const featuredProgramsCache = useApiCache(apiFetchFeaturedPrograms);
+  const recommendedProgramsCache = useApiCache(apiFetchPrograms); // Replace with actual recommended programs API when available
 
   const fetchUserProgramsCallback = useCallback(async () => {
-    setIsLoading(true);
-    setError(null);
     try {
       const token = await getIdToken();
       if (token) {
-        const programs = await fetchUserPrograms(token, getIdToken);
+        const programs = await apiFetchUserPrograms(token, getIdToken);
         setUserPrograms(programs);
       } else {
         throw new Error('Authentication token is missing');
       }
     } catch (error) {
       console.error('Error fetching user programs:', error);
-      setError('Failed to load user programs. Please try again later.');
-    } finally {
-      setIsLoading(false);
     }
   }, [getIdToken]);
 
@@ -96,12 +89,11 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }));
   }, []);
 
-
   const refreshUserPrograms = useCallback(async () => {
     try {
       const token = await getIdToken();
       if (token) {
-        const programs = await fetchUserPrograms(token, getIdToken);
+        const programs = await apiFetchUserPrograms(token, getIdToken);
         setUserPrograms(programs);
       }
     } catch (error) {
@@ -109,70 +101,51 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }
   }, [getIdToken]);
 
-
   const toggleFavoriteCallback = useCallback(async (programId: number) => {
     try {
       await toggleFavorite(programId);
-      setUserPrograms(prev => {
-        const isFavorite = prev.favorite_programs.some(p => p.id === programId);
-        let updatedFavorites: Program[];
-        if (isFavorite) {
-          updatedFavorites = prev.favorite_programs.filter(p => p.id !== programId);
-        } else {
-          const programToAdd = allPrograms.find(p => p.id === programId);
-          updatedFavorites = programToAdd 
-            ? [...prev.favorite_programs, programToAdd]
-            : prev.favorite_programs;
-        }
-        return {
-          ...prev,
-          favorite_programs: updatedFavorites
-        };
-      });
+      await refreshUserPrograms();
+      eventBus.publish('userProgramsUpdated');
     } catch (error) {
       console.error('Error toggling favorite:', error);
     }
-  }, [allPrograms]);
-
+  }, [refreshUserPrograms]);
+  
   const toggleWatchLaterCallback = useCallback(async (programId: number) => {
     try {
       await toggleWatchLater(programId);
-      setUserPrograms(prev => {
-        const isWatchLater = prev.watch_later_programs.some(p => p.id === programId);
-        let updatedWatchLater: Program[];
-        if (isWatchLater) {
-          updatedWatchLater = prev.watch_later_programs.filter(p => p.id !== programId);
-        } else {
-          const programToAdd = allPrograms.find(p => p.id === programId);
-          updatedWatchLater = programToAdd 
-            ? [...prev.watch_later_programs, programToAdd]
-            : prev.watch_later_programs;
-        }
-        return {
-          ...prev,
-          watch_later_programs: updatedWatchLater
-        };
-      });
+      await refreshUserPrograms();
+      eventBus.publish('userProgramsUpdated');
     } catch (error) {
       console.error('Error toggling watch later:', error);
     }
-  }, [allPrograms]);
+  }, [refreshUserPrograms]);
+
+  const isPurchased = useCallback((programId: string) => {
+    return userPrograms.purchased_programs.some(program => program.id === programId);
+  }, [userPrograms.purchased_programs]);
+
+  const isLoading = allProgramsCache.isLoading || featuredProgramsCache.isLoading || recommendedProgramsCache.isLoading;
+  const error = allProgramsCache.error || featuredProgramsCache.error || recommendedProgramsCache.error;
 
   return (
     <ProgramContext.Provider 
       value={{ 
-        allPrograms, 
-        featuredPrograms, 
+        allPrograms: allProgramsCache.data || [],
+        featuredPrograms: featuredProgramsCache.data || [],
+        recommendedPrograms: recommendedProgramsCache.data || [],
         userPrograms, 
         isLoading, 
         error, 
-        fetchAllPrograms, 
-        fetchFeaturedPrograms: fetchFeaturedProgramsCallback, 
+        fetchAllPrograms: allProgramsCache.fetchData,
+        fetchFeaturedPrograms: featuredProgramsCache.fetchData,
+        fetchRecommendedPrograms: recommendedProgramsCache.fetchData,
         fetchUserPrograms: fetchUserProgramsCallback,
         toggleFavorite: toggleFavoriteCallback,
         toggleWatchLater: toggleWatchLaterCallback,
         updateUserPrograms,
         refreshUserPrograms,
+        isPurchased,
       }}
     >
       {children}

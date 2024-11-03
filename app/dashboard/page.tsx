@@ -1,104 +1,124 @@
-// app/dashboard/page.tsx
 'use client';
 
-import { useEffect, useCallback } from 'react';
+import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
-import PurchasedPrograms from '../components/PurchasedPrograms';
-import Favorites from '../components/Favorites';
-import WatchLater from '../components/WatchLater';
-import FeaturedPrograms from '../components/FeaturedPrograms';
+import { DashboardSidebar, PurchasedPrograms, Favorites, WatchLater, FeaturedPrograms, RecommendedPrograms } from '../components';
 import { usePrograms } from '../context/ProgramContext';
-import { FaClock, FaShoppingCart, FaHeart, FaClock as FaWatchLater, FaUser } from 'react-icons/fa';
+import { motion } from 'framer-motion';
 
 const DashboardPage = () => {
-  const { user, loading } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
-  const { isLoading, error, userPrograms, fetchUserPrograms, fetchFeaturedPrograms, refreshUserPrograms } = usePrograms();
-
-  const refreshData = useCallback(async () => {
-    if (user) {
-      await refreshUserPrograms();
-      await fetchFeaturedPrograms();
-    }
-  }, [user, refreshUserPrograms, fetchFeaturedPrograms]);
+  const { 
+    userPrograms, 
+    featuredPrograms,
+    isLoading, 
+    error, 
+    fetchUserPrograms, 
+    fetchFeaturedPrograms 
+  } = usePrograms();
+  const [activeSection, setActiveSection] = useState('overview');
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
-    if (loading) return;
-
+    if (authLoading) return;
     if (!user) {
       router.push('/login');
       return;
     }
+    fetchUserPrograms();
+    fetchFeaturedPrograms();
+  }, [user, authLoading, router, fetchUserPrograms, fetchFeaturedPrograms]);
 
-    refreshData();
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
-    // Set up an interval to refresh data every 30 seconds
-    const intervalId = setInterval(refreshData, 30000);
-
-    // Clean up the interval when the component unmounts
-    return () => clearInterval(intervalId);
-  }, [user, loading, router, refreshData]);
-
-  useEffect(() => {
-    if (user && userPrograms) {
-      console.log('User programs updated:', userPrograms);
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'overview':
+        return (
+          <>
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+            >
+              <RecommendedPrograms />
+            </motion.div>
+            <motion.div 
+              className="mt-24"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400"></div>
+                </div>
+              ) : error ? (
+                <div className="text-red-500 text-center p-8 bg-darkBlue-800 rounded-lg shadow-lg">
+                  <h3 className="text-xl font-bold mb-2">Error</h3>
+                  <p>{error}</p>
+                </div>
+              ) : (
+                <FeaturedPrograms programs={featuredPrograms} />
+              )}
+            </motion.div>
+          </>
+        );
+      case 'favorites':
+        return (
+          <motion.div 
+            className="card bg-darkBlue-800 rounded-lg shadow-lg p-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl font-bold text-white mb-6">Your Favorites</h2>
+            <Favorites programs={userPrograms?.favorite_programs || []} />
+          </motion.div>
+        );
+      case 'watchLater':
+        return (
+          <motion.div 
+            className="card bg-darkBlue-800 rounded-lg shadow-lg p-8"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <h2 className="text-3xl font-bold text-white mb-6">Watch Later</h2>
+            <WatchLater programs={userPrograms?.watch_later_programs || []} />
+          </motion.div>
+        );
+      default:
+        return null;
     }
-  }, [user, userPrograms]);
+  };
 
-  if (loading || isLoading) return <div>Loading...</div>;
-  if (!user) return null;
-  if (error) return <div>{error}</div>;
-  if (!userPrograms) return <div>No user programs found.</div>;
-
-  // Extract first name from user's display name
-  const firstName = user.displayName ? user.displayName.split(' ')[0] : 'User';
+  if (authLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen bg-darkBlue-900">
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400"></div>
+      </div>
+    );
+  }
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Navigation Links */}
-      <nav className="flex justify-around mb-8 bg-gray-900 p-4 rounded-lg shadow-md">
-        <a href="#purchased" className="flex flex-col items-center text-turquoise hover:text-white transition duration-300">
-          <FaShoppingCart className="mr-2 text-green-500" />
-          <span className="mt-1 text-sm">Purchased</span>
-        </a>
-        <a href="#favorites" className="flex flex-col items-center text-turquoise hover:text-white transition duration-300">
-          <FaHeart className="text-2xl" />
-          <span className="mt-1 text-sm">Favorites</span>
-        </a>
-        <a href="#watchlater" className="flex flex-col items-center text-turquoise hover:text-white transition duration-300">
-          <FaWatchLater className="text-2xl" />
-          <span className="mt-1 text-sm">Watch Later</span>
-        </a>
-        <a href="/profile" className="flex flex-col items-center text-turquoise hover:text-white transition duration-300">
-          <FaUser className="text-2xl" />
-          <span className="mt-1 text-sm">Profile</span>
-        </a>
-      </nav>
-
-      {/* Welcome Message */}
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold text-turquoise">Welcome back, <span className="text-purple-500">{firstName}</span>!</h1>
-      </div>
-
-      {/* Featured Programs Carousel */}
-      <div className="mb-8">
-        <FeaturedPrograms />
-      </div>
-
-      {/* User's Purchased Programs */}
-      <div id="purchased" className="mb-8">
-        <PurchasedPrograms programs={userPrograms.purchased_programs} />
-      </div>
-
-      {/* User's Favorite Programs */}
-      <div id="favorites" className="mb-8">
-        <Favorites programs={userPrograms.favorite_programs} />
-      </div>
-
-      {/* Watch Later Programs */}
-      <div id="watchlater">
-        <WatchLater programs={userPrograms.watch_later_programs} />
+    <div className="flex flex-col min-h-screen bg-gradient-to-br from-darkBlue-900 to-darkBlue-800">
+      <div className="flex flex-1">
+        <DashboardSidebar
+          activeSection={activeSection}
+          setActiveSection={setActiveSection}
+          isOpen={isSidebarOpen}
+          toggleSidebar={toggleSidebar}
+        />
+        <main className="flex-1 p-8 overflow-y-auto">
+          <div className="max-w-7xl mx-auto">
+            {renderContent()}
+          </div>
+        </main>
       </div>
     </div>
   );

@@ -57,7 +57,16 @@ export const fetchUserPrograms = async (token: string, getIdToken: () => Promise
 export const fetchFeaturedPrograms = async (): Promise<Program[]> => {
   console.log("fetchFeaturedPrograms called");
   try {
-    const response = await axios.get(`${API_URL}/api/programs/featured/`);
+    const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await axios.get(`${API_URL}/api/programs/featured/`, { headers });
     console.log("Featured programs response status:", response.status);
     if (response.status !== 200) {
       console.error('Error response:', response.statusText);
@@ -68,33 +77,73 @@ export const fetchFeaturedPrograms = async (): Promise<Program[]> => {
     return data;
   } catch (error) {
     console.error('Error fetching featured programs:', error);
-    throw error;
+    throw error; // Remove mock data fallback
+  }
+};
+
+export const fetchRecommendedPrograms = async (token: string): Promise<Program[]> => {
+  console.log("fetchRecommendedPrograms called");
+  try {
+    const response = await axios.get(`${API_URL}/api/programs/recommended/`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    console.log("Recommended programs response status:", response.status);
+    if (response.status !== 200) {
+      console.error('Error response:', response.statusText);
+      throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`);
+    }
+    const data = response.data;
+    console.log("Recommended programs data:", data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching recommended programs:', error);
+    throw error; // Remove mock data fallback
   }
 };
 
 export const fetchPrograms = async (): Promise<Program[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/programs/`);
+    const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/api/programs/`, { headers });
     if (!response.ok) {
       throw new Error('Failed to fetch programs');
     }
     return await response.json();
   } catch (error) {
     console.error('Error fetching programs:', error);
-    throw error;
+    throw error; // Remove mock data fallback
   }
 };
 
 export const fetchProgramsByCategory = async (category: string): Promise<Program[]> => {
   try {
-    const response = await fetch(`${API_URL}/api/programs/?category=${category}`);
+    const token = localStorage.getItem('authToken');
+    const headers: Record<string, string> = {
+      'Accept': 'application/json',
+    };
+    
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(`${API_URL}/api/programs/?category=${category}`, { headers });
     if (!response.ok) {
       throw new Error(`Failed to fetch ${category} programs`);
     }
     return await response.json();
   } catch (error) {
     console.error(`Error fetching ${category} programs:`, error);
-    throw error;
+    throw error; // Remove mock data fallback
   }
 };
 
