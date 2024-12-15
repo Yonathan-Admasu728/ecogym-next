@@ -2,8 +2,6 @@
 import axios from 'axios';
 import { Program } from '../types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
-
 export interface UserPrograms {
   purchased_programs: Program[];
   favorite_programs: Program[];
@@ -17,7 +15,7 @@ export const fetchUserPrograms = async (token: string, getIdToken: () => Promise
 }> => {
   console.log("fetchUserPrograms called with token:", token.substring(0, 10) + "...");
   try {
-    const response = await axios.get(`${API_URL}/api/user/programs/`, {
+    const response = await axios.get('/api/user/programs', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -66,7 +64,7 @@ export const fetchFeaturedPrograms = async (): Promise<Program[]> => {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await axios.get(`${API_URL}/api/programs/featured/`, { headers });
+    const response = await axios.get('/api/programs/featured', { headers });
     console.log("Featured programs response status:", response.status);
     if (response.status !== 200) {
       console.error('Error response:', response.statusText);
@@ -77,14 +75,14 @@ export const fetchFeaturedPrograms = async (): Promise<Program[]> => {
     return data;
   } catch (error) {
     console.error('Error fetching featured programs:', error);
-    throw error; // Remove mock data fallback
+    throw error;
   }
 };
 
 export const fetchRecommendedPrograms = async (token: string): Promise<Program[]> => {
   console.log("fetchRecommendedPrograms called");
   try {
-    const response = await axios.get(`${API_URL}/api/programs/recommended/`, {
+    const response = await axios.get('/api/programs/recommended', {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -99,7 +97,7 @@ export const fetchRecommendedPrograms = async (token: string): Promise<Program[]
     return data;
   } catch (error) {
     console.error('Error fetching recommended programs:', error);
-    throw error; // Remove mock data fallback
+    throw error;
   }
 };
 
@@ -114,14 +112,14 @@ export const fetchPrograms = async (): Promise<Program[]> => {
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}/api/programs/`, { headers });
+    const response = await fetch('/api/programs', { headers });
     if (!response.ok) {
       throw new Error('Failed to fetch programs');
     }
     return await response.json();
   } catch (error) {
     console.error('Error fetching programs:', error);
-    throw error; // Remove mock data fallback
+    throw error;
   }
 };
 
@@ -136,14 +134,14 @@ export const fetchProgramsByCategory = async (category: string): Promise<Program
       headers['Authorization'] = `Bearer ${token}`;
     }
 
-    const response = await fetch(`${API_URL}/api/programs/?category=${category}`, { headers });
+    const response = await fetch(`/api/programs?category=${category}`, { headers });
     if (!response.ok) {
       throw new Error(`Failed to fetch ${category} programs`);
     }
     return await response.json();
   } catch (error) {
     console.error(`Error fetching ${category} programs:`, error);
-    throw error; // Remove mock data fallback
+    throw error;
   }
 };
 
@@ -153,7 +151,7 @@ export const toggleFavorite = async (programId: number): Promise<void> => {
     if (!token) {
       throw new Error('No auth token found');
     }
-    const response = await fetch(`${API_URL}/api/user/favorites/toggle/${programId}/`, {
+    const response = await fetch(`/api/user/favorites/toggle/${programId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,
@@ -174,7 +172,7 @@ export const toggleWatchLater = async (programId: number): Promise<void> => {
     if (!token) {
       throw new Error('No auth token found');
     }
-    const response = await fetch(`${API_URL}/api/user/watch-later/toggle/${programId}/`, {
+    const response = await fetch(`/api/user/watch-later/toggle/${programId}`, {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${token}`,

@@ -3,10 +3,8 @@
 import axios, { AxiosError } from 'axios';
 import { Program } from '../types';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL?.replace(/\/$/, '');
-
 const axiosInstance = axios.create({
-  baseURL: API_URL,
+  baseURL: '',  // Empty since we're using relative paths
   headers: {
     'Content-Type': 'application/json',
   },
@@ -33,7 +31,7 @@ export const ProgramService = {
   getFeaturedPrograms: async (): Promise<Program[]> => {
     try {
       console.log('Fetching featured programs');
-      const response = await axiosInstance.get('/api/programs/featured/');
+      const response = await axiosInstance.get('/api/programs/featured');
       console.log('Featured programs response:', response.data);
       return response.data;
     } catch (error) {
@@ -43,10 +41,10 @@ export const ProgramService = {
     }
   },
 
-  getRecommendedPrograms: async (userId: string): Promise<Program[]> => {
+  getRecommendedPrograms: async (): Promise<Program[]> => {
     try {
-      console.log(`Fetching recommended programs for user ${userId}`);
-      const response = await axiosInstance.get('/api/programs/recommended/');
+      console.log('Fetching recommended programs');
+      const response = await axiosInstance.get('/api/programs/recommended');
       console.log('Recommended programs response:', response.data);
       return response.data;
     } catch (error) {
@@ -56,10 +54,10 @@ export const ProgramService = {
     }
   },
 
-  getPurchasedPrograms: async (userId: string) => {
+  getPurchasedPrograms: async () => {
     try {
-      console.log(`Fetching purchased programs for user ${userId}`);
-      const response = await axiosInstance.get(`/api/users/${userId}/purchased-programs/`);
+      console.log('Fetching purchased programs');
+      const response = await axiosInstance.get('/api/payments/purchased-programs');
       console.log('Purchased programs response:', response.data);
       return response.data;
     } catch (error) {
@@ -71,7 +69,7 @@ export const ProgramService = {
 
   getFavorites: async (userId: string): Promise<Program[]> => {
     try {
-      const response = await axiosInstance.get(`/api/users/${userId}/favorites/`);
+      const response = await axiosInstance.get(`/api/users/${userId}/favorites`);
       return response.data;
     } catch (error) {
       console.error('Error fetching favorites:', error);
@@ -82,7 +80,7 @@ export const ProgramService = {
 
   getWatchLater: async (userId: string): Promise<Program[]> => {
     try {
-      const response = await axiosInstance.get(`/api/users/${userId}/watch-later/`);
+      const response = await axiosInstance.get(`/api/users/${userId}/watch-later`);
       return response.data;
     } catch (error) {
       console.error('Error fetching watch later:', error);
@@ -93,7 +91,7 @@ export const ProgramService = {
 
   addToFavorites: async (userId: string, programId: number): Promise<void> => {
     try {
-      await axiosInstance.post(`/api/users/${userId}/favorites/`, { program_id: programId });
+      await axiosInstance.post(`/api/users/${userId}/favorites`, { program_id: programId });
     } catch (error) {
       console.error('Error adding to favorites:', error);
       handleApiError(error);
@@ -103,7 +101,7 @@ export const ProgramService = {
 
   removeFromFavorites: async (userId: string, programId: number): Promise<void> => {
     try {
-      await axiosInstance.delete(`/api/users/${userId}/favorites/${programId}/`);
+      await axiosInstance.delete(`/api/users/${userId}/favorites/${programId}`);
     } catch (error) {
       console.error('Error removing from favorites:', error);
       handleApiError(error);
@@ -113,7 +111,7 @@ export const ProgramService = {
 
   addToWatchLater: async (userId: string, programId: number): Promise<void> => {
     try {
-      await axiosInstance.post(`/api/users/${userId}/watch-later/`, { program_id: programId });
+      await axiosInstance.post(`/api/users/${userId}/watch-later`, { program_id: programId });
     } catch (error) {
       console.error('Error adding to watch later:', error);
       handleApiError(error);
@@ -123,7 +121,7 @@ export const ProgramService = {
 
   removeFromWatchLater: async (userId: string, programId: number): Promise<void> => {
     try {
-      await axiosInstance.delete(`/api/users/${userId}/watch-later/${programId}/`);
+      await axiosInstance.delete(`/api/users/${userId}/watch-later/${programId}`);
     } catch (error) {
       console.error('Error removing from watch later:', error);
       handleApiError(error);

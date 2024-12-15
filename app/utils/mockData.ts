@@ -1,72 +1,181 @@
-import { Program } from '../types';
+export const mockTrainers = {
+  sarah: {
+    id: 'trainer_sarah',
+    profile_picture: '/images/trainer-sarah.png',
+    user: {
+      first_name: 'Sarah',
+      last_name: 'Chen'
+    },
+    specialties: ['Mindfulness', 'Meditation', 'Stress Management'],
+    bio: 'Certified mindfulness instructor with 10 years of experience in meditation and stress reduction techniques.'
+  },
+  michael: {
+    id: 'trainer_michael',
+    profile_picture: '/images/trainer-michael.png',
+    user: {
+      first_name: 'Michael',
+      last_name: 'Brown'
+    },
+    specialties: ['Meditation', 'Breathwork', 'Yoga'],
+    bio: 'Experienced meditation guide specializing in deep meditation and breathwork practices.'
+  },
+  emily: {
+    id: 'trainer_emily',
+    profile_picture: '/images/trainer-emily.png',
+    user: {
+      first_name: 'Emily',
+      last_name: 'Johnson'
+    },
+    specialties: ['HIIT', 'Strength Training', 'Calisthenics'],
+    bio: 'Professional fitness trainer with expertise in high-intensity workouts and body weight exercises.'
+  }
+};
 
-export const mockPrograms: Program[] = [
+export const mockPrograms = [
   {
-    id: '1',
-    title: 'Mindful Meditation',
-    description: 'A beginner-friendly meditation program to reduce stress and improve focus.',
-    thumbnail: '/images/med1.png',
-    duration: '30 minutes',
-    level: 'Beginner',
-    category: 'Meditation',
-    isFree: true,
-    trainer: {
-      profile_picture: '/images/trainer-sarah.png',
-      user: {
-        first_name: 'Sarah',
-        last_name: 'Johnson'
-      }
-    },
-    sessions: [
-      { id: '1-1', title: 'Introduction to Mindfulness', duration: '10 minutes' },
-      { id: '1-2', title: 'Breath Awareness', duration: '10 minutes' },
-      { id: '1-3', title: 'Body Scan', duration: '10 minutes' },
-    ],
-  },
-  {
-    id: '2',
-    title: 'High-Intensity Interval Training',
-    description: 'An advanced HIIT workout to boost metabolism and burn fat.',
-    thumbnail: '/images/hiit.png',
-    duration: '45 minutes',
-    level: 'Advanced',
-    category: 'Workout',
+    id: '21-day-calisthenics',
+    title: '21-Day Calisthenics Challenge',
+    description: 'Transform your body using just your bodyweight with this progressive calisthenics program.',
+    detailed_description: 'This comprehensive program takes you from basic movements to advanced calisthenics skills over 21 days. Each session builds upon the previous ones, gradually increasing in difficulty while maintaining proper form and technique.',
+    category: 'fitness',
+    subcategories: ['calisthenics', 'strength', 'bodyweight'],
+    duration: '21 days',
+    total_sessions: 21,
+    level: 'All Levels',
+    trainer: mockTrainers.emily,
+    featured: true,
+    thumbnail: '/images/strength.png',
+    price: 49.99,
     isFree: false,
-    price: 9.99,
-    stripe_price_id: 'price_HIIT001',
-    trainer: {
-      profile_picture: '/images/trainer-michael.png',
-      user: {
-        first_name: 'Michael',
-        last_name: 'Chen'
-      }
+    program_type: 'multi_session_linear',
+    estimated_completion_days: 21,
+    recommended_schedule: {
+      sessions_per_week: 6,
+      rest_days: [0] // Sunday rest day
+    },
+    prerequisites: {
+      fitness_level: 'No specific level required',
+      equipment: ['Pull-up bar (recommended but not required)'],
+      prior_experience: []
     },
     sessions: [
-      { id: '2-1', title: 'Warm-up', duration: '5 minutes' },
-      { id: '2-2', title: 'HIIT Circuit', duration: '30 minutes' },
-      { id: '2-3', title: 'Cool-down', duration: '10 minutes' },
-    ],
+      {
+        id: 'day1',
+        title: 'Foundations of Bodyweight Training',
+        description: 'Learn the fundamental movements that will form the basis of your calisthenics journey.',
+        duration: '30 minutes',
+        duration_seconds: 1800,
+        order: 1,
+        difficulty_level: 1,
+        video_url: '/videos/calisthenics/day1.mp4',
+        thumbnail: '/images/calisthenics/day1.jpg',
+        equipment_needed: [],
+        is_preview: true,
+        key_learnings: [
+          'Proper push-up form',
+          'Squat technique',
+          'Core engagement basics'
+        ]
+      },
+      {
+        id: 'day2',
+        title: 'Building Basic Strength',
+        description: 'Focus on building foundational strength through basic calisthenics movements.',
+        duration: '35 minutes',
+        duration_seconds: 2100,
+        order: 2,
+        difficulty_level: 2,
+        prerequisites: ['day1'],
+        video_url: '/videos/calisthenics/day2.mp4',
+        thumbnail: '/images/calisthenics/day2.jpg',
+        equipment_needed: []
+      }
+      // Additional sessions would continue with progressive difficulty
+    ]
   },
   {
-    id: '3',
-    title: 'Yoga for Beginners',
-    description: 'A gentle introduction to yoga poses and breathing techniques.',
-    thumbnail: '/images/pilates.png',
-    duration: '60 minutes',
+    id: 'mindfulness-foundations',
+    title: 'Mindfulness Foundations',
+    description: 'A comprehensive mindfulness program to reduce stress and increase focus.',
+    detailed_description: 'Perfect for beginners, this program introduces key mindfulness concepts and meditation techniques that you can practice anywhere, anytime.',
+    category: 'mindfulness',
+    subcategories: ['meditation', 'stress-reduction'],
+    duration: '4 weeks',
+    total_sessions: 8,
     level: 'Beginner',
-    category: 'Yoga',
-    isFree: true,
-    trainer: {
-      profile_picture: '/images/trainer-emily.png',
-      user: {
-        first_name: 'Emily',
-        last_name: 'Rodriguez'
-      }
+    trainer: mockTrainers.sarah,
+    featured: true,
+    thumbnail: '/images/med1.png',
+    price: 29.99,
+    isFree: false,
+    program_type: 'multi_session_flexible',
+    estimated_completion_days: 28,
+    recommended_schedule: {
+      sessions_per_week: 2,
+      rest_days: [] // Flexible schedule
     },
     sessions: [
-      { id: '3-1', title: 'Introduction to Yoga', duration: '10 minutes' },
-      { id: '3-2', title: 'Basic Poses', duration: '40 minutes' },
-      { id: '3-3', title: 'Relaxation', duration: '10 minutes' },
-    ],
+      {
+        id: 'intro-to-mindfulness',
+        title: 'Introduction to Mindfulness',
+        description: 'Learn the basics of mindfulness meditation and its benefits.',
+        duration: '20 minutes',
+        duration_seconds: 1200,
+        order: 1,
+        difficulty_level: 1,
+        video_url: '/videos/mindfulness/intro.mp4',
+        thumbnail: '/images/mindfulness/intro.jpg',
+        is_preview: true,
+        key_learnings: [
+          'What is mindfulness',
+          'Basic breathing techniques',
+          'Creating a meditation space'
+        ]
+      }
+      // Additional sessions would follow
+    ]
   },
+  {
+    id: 'quick-hiit',
+    title: '30-Minute HIIT Blast',
+    description: 'High-intensity interval training for maximum calorie burn.',
+    detailed_description: 'A single intense session combining cardio and strength exercises for a full-body workout.',
+    category: 'fitness',
+    subcategories: ['hiit', 'cardio'],
+    duration: '30 minutes',
+    total_sessions: 1,
+    level: 'Intermediate',
+    trainer: mockTrainers.emily,
+    featured: true,
+    thumbnail: '/images/hiit.png',
+    price: 4.99,
+    isFree: false,
+    program_type: 'single_session',
+    sessions: [
+      {
+        id: 'hiit-main',
+        title: '30-Minute HIIT Blast',
+        description: 'Complete full-body HIIT workout.',
+        duration: '30 minutes',
+        duration_seconds: 1800,
+        order: 1,
+        difficulty_level: 7,
+        video_url: '/videos/hiit/main.mp4',
+        thumbnail: '/images/hiit/main.jpg',
+        equipment_needed: ['Mat (optional)'],
+        key_learnings: [
+          'HIIT principles',
+          'Proper form for exercises',
+          'Modifications for different fitness levels'
+        ]
+      }
+    ]
+  }
 ];
+
+export const mockUser = {
+  id: '1',
+  name: 'John Doe',
+  email: 'john@example.com',
+  avatar: '/images/placeholder-avatar.svg'
+};

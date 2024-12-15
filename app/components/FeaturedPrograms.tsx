@@ -1,12 +1,11 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import { useRouter } from 'next/navigation';
 import { FaLeaf, FaArrowRight } from 'react-icons/fa';
 import { Program } from '../types';
 import Carousel from './Carousel';
 import { motion } from 'framer-motion';
-import ProgramPreviewModal from './ProgramPreviewModal';
 import { useProgramActions } from '../hooks/useProgramActions';
 import { useAuth } from '../context/AuthContext';
 import { usePrograms } from '../context/ProgramContext';
@@ -17,21 +16,16 @@ interface FeaturedProgramsProps {
 
 const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs }) => {
   const router = useRouter();
-  const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
   const { handleToggleFavorite } = useProgramActions();
   const { user } = useAuth();
   const { isPurchased } = usePrograms();
 
   const handleExplore = (programId: string) => {
-    const program = programs?.find(p => p.id === programId);
-    if (program) {
-      setSelectedProgram(program);
-    }
+    router.push(`/programs/${programId}`);
   };
 
   const handleQuickAddToFavorites = (programId: string) => {
     handleToggleFavorite(programId);
-    // You might want to add some visual feedback here
   };
 
   const handleSignIn = () => {
@@ -103,13 +97,6 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs }) => {
           </motion.button>
         </motion.div>
       </div>
-      {selectedProgram && (
-        <ProgramPreviewModal
-          program={selectedProgram}
-          onClose={() => setSelectedProgram(null)}
-          onExplore={() => router.push(`/programs/${selectedProgram.id}`)}
-        />
-      )}
     </section>
   );
 };

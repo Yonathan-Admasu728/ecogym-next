@@ -1,75 +1,128 @@
-import React from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { FaFacebook, FaTwitter, FaInstagram, FaYoutube, FaLeaf, FaEnvelope } from 'react-icons/fa';
+import Link from 'next/link';
 
-const Footer: React.FC = () => {
+const Footer = () => {
+  const socialLinks = [
+    { name: 'Instagram', url: 'https://instagram.com/ecogym', icon: '📸' },
+    { name: 'Bluesky', url: 'https://Bluesky.com/ecogym', icon: '🦋' },
+    { name: 'Facebook', url: 'https://facebook.com/ecogym', icon: '👥' }
+  ];
+
   return (
-    <footer className="bg-darkBlue-900 text-white py-16 relative overflow-hidden">
+    <footer className="relative bg-gray-900 text-gray-300 py-10">
       <div className="absolute inset-0 opacity-5">
-        <Image src="/images/pattern.svg" alt="Background pattern" layout="fill" objectFit="cover" />
+        {/* Optional background pattern, can remove if you want a cleaner look */}
+        <Image 
+          src="/images/pattern.svg" 
+          alt="Background pattern" 
+          fill
+          style={{ objectFit: "cover" }}
+          priority
+        />
       </div>
-      <div className="container mx-auto px-4 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-12">
-          <div className="col-span-1 md:col-span-2">
-            <Link href="/" className="flex items-center mb-4">
-              <Image src="/images/ecogym-logo.png" alt="EcoGym Logo" width={40} height={40} className="mr-2" />
-              <span className="text-2xl font-bold text-turquoise-400">EcoGym</span>
-            </Link>
-            <p className="text-lightBlue-100 mb-4">Transforming minds and bodies, anytime, anywhere.</p>
-            <div className="flex space-x-4 mb-6">
-              <a href="#" className="text-turquoise-400 hover:text-white transition-colors duration-300 transform hover:scale-110"><FaFacebook size={24} /></a>
-              <a href="#" className="text-turquoise-400 hover:text-white transition-colors duration-300 transform hover:scale-110"><FaTwitter size={24} /></a>
-              <a href="#" className="text-turquoise-400 hover:text-white transition-colors duration-300 transform hover:scale-110"><FaInstagram size={24} /></a>
-              <a href="#" className="text-turquoise-400 hover:text-white transition-colors duration-300 transform hover:scale-110"><FaYoutube size={24} /></a>
-            </div>
-            <form className="flex flex-col sm:flex-row">
-              <input 
-                type="email" 
-                placeholder="Enter your email" 
-                className="bg-darkBlue-800 text-white px-4 py-2 rounded-l-lg focus:outline-none focus:ring-2 focus:ring-turquoise-400 mb-2 sm:mb-0"
+      
+      <div className="container max-w-6xl mx-auto px-4 relative z-10">
+        <div className="flex flex-col md:flex-row md:items-start md:justify-between space-y-12 md:space-y-0 md:space-x-8">
+          {/* Brand / Logo & Tagline */}
+          <div className="flex flex-col items-center md:items-start space-y-4 md:w-1/4">
+            <Link href="/" className="inline-block transform hover:scale-105 transition-transform duration-300">
+              <Image
+                src="/images/ecogym-logo.png"
+                alt="EcoGym Logo"
+                width={100}
+                height={100}
+                className="h-auto w-auto brightness-200"
               />
-              <button 
-                type="submit" 
-                className="bg-turquoise-400 text-darkBlue-900 px-4 py-2 rounded-r-lg hover:bg-turquoise-500 transition-colors duration-300"
-              >
-                <FaEnvelope className="inline mr-2" />
-                Subscribe
-              </button>
-            </form>
+            </Link>
+            <p className="text-gray-300 text-sm leading-snug text-center md:text-left max-w-xs">
+              Fitness Meets Wellness
+            </p>
           </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-turquoise-400">Our Programs</h4>
-            <ul className="space-y-2">
-              <li><Link href="/programs/meditation" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Meditation</Link></li>
-              <li><Link href="/programs/mindfulness" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Mindfulness</Link></li>
-              <li><Link href="/programs/workouts" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Home Workouts</Link></li>
-              <li><Link href="/programs" className="text-lightBlue-100 hover:text-white transition-colors duration-300">All Programs</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-turquoise-400">Company</h4>
-            <ul className="space-y-2">
-              <li><Link href="/about" className="text-lightBlue-100 hover:text-white transition-colors duration-300">About Us</Link></li>
-              <li><Link href="/contact" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Contact</Link></li>
-              <li><Link href="/blog" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Blog</Link></li>
-              <li><Link href="/faq" className="text-lightBlue-100 hover:text-white transition-colors duration-300">FAQ</Link></li>
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4 text-turquoise-400">Legal</h4>
-            <ul className="space-y-2">
-              <li><Link href="/terms-of-service" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Terms of Service</Link></li>
-              <li><Link href="/privacy-policy" className="text-lightBlue-100 hover:text-white transition-colors duration-300">Privacy Policy</Link></li>
-            </ul>
+
+          {/* Navigation Columns */}
+          <div className="flex flex-col sm:flex-row sm:space-x-12 md:space-x-16 w-full md:w-auto justify-center md:justify-start">
+            
+            {/* Quick Links */}
+            <div className="flex flex-col items-center sm:items-start space-y-4 mb-8 sm:mb-0">
+              <h3 className="text-md font-semibold text-white">Quick Links</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link 
+                    href="/programs" 
+                    className="hover:text-turquoise-400 transition-colors"
+                  >
+                    Programs
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/about" 
+                    className="hover:text-turquoise-400 transition-colors"
+                  >
+                    About Us
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/contact" 
+                    className="hover:text-turquoise-400 transition-colors"
+                  >
+                    Contact
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            
+            {/* Legal */}
+            <div className="flex flex-col items-center sm:items-start space-y-4 mb-8 sm:mb-0">
+              <h3 className="text-md font-semibold text-white">Legal</h3>
+              <ul className="space-y-2 text-sm">
+                <li>
+                  <Link 
+                    href="/privacy-policy" 
+                    className="hover:text-turquoise-400 transition-colors"
+                  >
+                    Privacy Policy
+                  </Link>
+                </li>
+                <li>
+                  <Link 
+                    href="/terms-of-service" 
+                    className="hover:text-turquoise-400 transition-colors"
+                  >
+                    Terms of Service
+                  </Link>
+                </li>
+              </ul>
+            </div>
+            
+            {/* Connect */}
+            <div className="flex flex-col items-center sm:items-start space-y-4">
+              <h3 className="text-md font-semibold text-white">Connect</h3>
+              <ul className="space-y-2 text-sm">
+                {socialLinks.map((link) => (
+                  <li key={link.name}>
+                    <a 
+                      href={link.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center hover:text-turquoise-400 transition-colors"
+                    >
+                      <span className="text-lg mr-2">{link.icon}</span>
+                      {link.name}
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
         </div>
-        <div className="mt-12 pt-8 border-t border-darkBlue-800 flex flex-col md:flex-row justify-between items-center">
-          <p className="text-lightBlue-100 mb-4 md:mb-0">&copy; {new Date().getFullYear()} EcoGym. All rights reserved.</p>
-          <div className="flex items-center">
-            <FaLeaf className="text-turquoise-400 mr-2" />
-            <span className="text-lightBlue-100">Nurturing your mind and body, naturally</span>
-          </div>
+        
+        {/* Footer Bottom */}
+        <div className="mt-10 pt-6 border-t border-gray-700/50 text-center">
+          <p className="text-gray-400 text-xs">
+            &copy; {new Date().getFullYear()} EcoGym. All rights reserved.
+          </p>
         </div>
       </div>
     </footer>

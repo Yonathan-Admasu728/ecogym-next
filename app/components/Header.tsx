@@ -13,10 +13,9 @@ const Header: React.FC = () => {
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
 
   const menuItems = [
-    { href: '/programs/meditation', label: 'Meditation' },
-    { href: '/programs/mindfulness', label: 'Mindfulness' },
+    { href: '/programs/mindfulness-meditation', label: 'Mindfulness & Meditation' },
     { href: '/programs/workouts', label: 'Workouts' },
-    { href: '/about', label: 'About' },
+    { href: '/blog', label: 'Blog' },
   ];
 
   return (
@@ -24,7 +23,16 @@ const Header: React.FC = () => {
       <div className="container mx-auto px-4 py-4">
         <div className="flex items-center justify-between">
           <Link href="/" className="flex items-center">
-            <Image src="/images/ecogym-logo.png" alt="EcoGym Logo" width={40} height={40} className="mr-2" />
+            <div className="relative w-10 h-10 mr-2">
+              <Image
+                src="/images/ecogym-logo.png"
+                alt="EcoGym Logo"
+                fill
+                sizes="40px"
+                style={{ objectFit: 'contain' }}
+                priority
+              />
+            </div>
             <span className="text-2xl font-bold text-turquoise-400">EcoGym</span>
           </Link>
           <nav className="hidden md:block">
@@ -39,17 +47,20 @@ const Header: React.FC = () => {
               {user ? (
                 <li>
                   <Link href="/dashboard" className="flex items-center">
-                    {user.photoURL ? (
-                      <Image
-                        src={user.photoURL}
-                        alt="User Avatar"
-                        width={32}
-                        height={32}
-                        className="rounded-full mr-2"
-                      />
-                    ) : (
-                      <PlaceholderAvatar width={32} height={32} className="rounded-full mr-2" />
-                    )}
+                    <div className="relative w-8 h-8 mr-2">
+                      {user.photoURL ? (
+                        <Image
+                          src={user.photoURL}
+                          alt="User Avatar"
+                          fill
+                          sizes="32px"
+                          className="rounded-full"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <PlaceholderAvatar className="rounded-full w-full h-full" />
+                      )}
+                    </div>
                     <span className="text-white hover:text-turquoise-400 transition duration-300">
                       {user.displayName || 'Dashboard'}
                     </span>
@@ -84,17 +95,20 @@ const Header: React.FC = () => {
               {user ? (
                 <li>
                   <Link href="/dashboard" className="flex items-center">
-                    {user.photoURL ? (
-                      <Image
-                        src={user.photoURL}
-                        alt="User Avatar"
-                        width={32}
-                        height={32}
-                        className="rounded-full mr-2"
-                      />
-                    ) : (
-                      <PlaceholderAvatar width={32} height={32} className="rounded-full mr-2" />
-                    )}
+                    <div className="relative w-8 h-8 mr-2">
+                      {user.photoURL ? (
+                        <Image
+                          src={user.photoURL}
+                          alt="User Avatar"
+                          fill
+                          sizes="32px"
+                          className="rounded-full"
+                          style={{ objectFit: 'cover' }}
+                        />
+                      ) : (
+                        <PlaceholderAvatar className="rounded-full w-full h-full" />
+                      )}
+                    </div>
                     <span className="text-white hover:text-turquoise-400 transition duration-300">
                       {user.displayName || 'Dashboard'}
                     </span>

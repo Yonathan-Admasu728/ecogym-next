@@ -1,12 +1,17 @@
 // PaymentService.ts
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const axiosInstance = axios.create({
+  baseURL: '',  // Empty since we're using relative paths
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
 
 export class PaymentService {
   static async createCheckoutSession(programId: string): Promise<{ sessionId: string } | null> {
     try {
-      const response = await axios.post(`${API_URL}/api/payments/create-checkout-session`, { program_id: programId });
+      const response = await axiosInstance.post('/api/payments/create-checkout-session', { program_id: programId });
       return { sessionId: response.data.session_id };
     } catch (error) {
       console.error('Error creating checkout session:', error);
@@ -16,54 +21,33 @@ export class PaymentService {
 
   static async checkPurchaseStatus(programId: string): Promise<{ purchased: boolean }> {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No auth token found');
-      }
-      const response = await axios.get(`${API_URL}/api/payments/check-purchase-status`, {
-        params: { program_id: programId },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await axiosInstance.get('/api/payments/check-purchase-status', {
+        params: { program_id: programId }
       });
-      return { purchased: response.data.purchased };
+      return { purchased: response.data.isPurchased };
     } catch (error) {
       console.error('Error checking purchase status:', error);
-      throw error;
+      // For demo purposes, if there's an error, assume not purchased
+      return { purchased: false };
     }
   }
 
   static async verifyPurchase(programId: string): Promise<boolean> {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No auth token found');
-      }
-      const response = await axios.get(`${API_URL}/api/payments/verify-purchase`, {
-        params: { program_id: programId },
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
+      const response = await axiosInstance.get('/api/payments/check-purchase-status', {
+        params: { program_id: programId }
       });
-      return response.data.verified;
+      return response.data.isPurchased;
     } catch (error) {
       console.error('Error verifying purchase:', error);
       return false;
     }
   }
 
-  static async fetchPurchasedPrograms(): Promise<string[]> {
+  static async fetchPurchasedPrograms(): Promise<any[]> {
     try {
-      const token = localStorage.getItem('authToken');
-      if (!token) {
-        throw new Error('No auth token found');
-      }
-      const response = await axios.get(`${API_URL}/api/payments/purchased-programs`, {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-        },
-      });
-      return response.data.purchased_programs;
+      const response = await axiosInstance.get('/api/payments/purchased-programs');
+      return response.data;
     } catch (error) {
       console.error('Error fetching purchased programs:', error);
       return [];
