@@ -2,9 +2,10 @@
 'use client';
 
 import React, { useState } from 'react';
+import { FaShoppingCart } from 'react-icons/fa';
+
 import { Program } from '../types';
 import ProgramCard from './ProgramCard';
-import { FaShoppingCart } from 'react-icons/fa';
 import ProgramDetail from './ProgramDetail';
 
 interface PurchasedProgramsProps {

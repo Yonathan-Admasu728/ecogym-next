@@ -1,47 +1,97 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 
-export const useProgramActions = () => {
-  const [favorites, setFavorites] = useState<Set<string>>(new Set());
-  const [watchLater, setWatchLater] = useState<Set<string>>(new Set());
+import * as PaymentService from '../services/PaymentService';
+import { Program } from '../types';
+import { logger } from '../utils/logger';
 
-  const handleToggleFavorite = useCallback((programId: string) => {
-    setFavorites((prev) => {
-      const newFavorites = new Set(prev);
-      if (newFavorites.has(programId)) {
-        newFavorites.delete(programId);
-        toast.success('Removed from favorites');
+export interface ProgramActions {
+  isLoading: boolean;
+  watchLaterIds: Set<string>;
+  favoriteIds: Set<string>;
+  completedIds: Set<string>;
+  purchasedProgramIds: Set<string>;
+  handlePurchase: (program: Program) => Promise<void>;
+  handleToggleWatchLater: (programId: string) => void;
+  handleToggleFavorite: (programId: string) => void;
+  handleToggleCompleted: (programId: string) => void;
+  isProgramPurchased: (programId: string) => boolean;
+}
+
+export function useProgramActions(): ProgramActions {
+  const [isLoading, setIsLoading] = useState(false);
+  const [watchLaterIds, setWatchLaterIds] = useState<Set<string>>(new Set());
+  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
+  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
+  const [purchasedProgramIds, setPurchasedProgramIds] = useState<Set<string>>(new Set());
+
+  const handlePurchase = useCallback(async (program: Program) => {
+    setIsLoading(true);
+    try {
+      const session = await PaymentService.createCheckoutSession(program.id);
+      if (session.url) {
+        window.location.href = session.url;
       } else {
-        newFavorites.add(programId);
-        toast.success('Added to favorites');
+        throw new Error('No checkout URL received');
       }
-      return newFavorites;
-    });
-    // Here you would typically make an API call to update the user's favorites
+    } catch (error) {
+      logger.error('Purchase error:', error);
+      toast.error('Failed to initiate purchase. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   }, []);
 
   const handleToggleWatchLater = useCallback((programId: string) => {
-    setWatchLater((prev) => {
-      const newWatchLater = new Set(prev);
-      if (newWatchLater.has(programId)) {
-        newWatchLater.delete(programId);
-        toast.success('Removed from watch later');
+    setWatchLaterIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(programId)) {
+        newSet.delete(programId);
       } else {
-        newWatchLater.add(programId);
-        toast.success('Added to watch later');
+        newSet.add(programId);
       }
-      return newWatchLater;
+      return newSet;
     });
-    // Here you would typically make an API call to update the user's watch later list
   }, []);
 
-  const isFavorite = useCallback((programId: string) => favorites.has(programId), [favorites]);
-  const isWatchLater = useCallback((programId: string) => watchLater.has(programId), [watchLater]);
+  const handleToggleFavorite = useCallback((programId: string) => {
+    setFavoriteIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(programId)) {
+        newSet.delete(programId);
+      } else {
+        newSet.add(programId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const handleToggleCompleted = useCallback((programId: string) => {
+    setCompletedIds((prev) => {
+      const newSet = new Set(prev);
+      if (newSet.has(programId)) {
+        newSet.delete(programId);
+      } else {
+        newSet.add(programId);
+      }
+      return newSet;
+    });
+  }, []);
+
+  const isProgramPurchased = useCallback((programId: string) => {
+    return purchasedProgramIds.has(programId);
+  }, [purchasedProgramIds]);
 
   return {
-    isFavorite,
-    isWatchLater,
-    handleToggleFavorite,
+    isLoading,
+    watchLaterIds,
+    favoriteIds,
+    completedIds,
+    purchasedProgramIds,
+    handlePurchase,
     handleToggleWatchLater,
+    handleToggleFavorite,
+    handleToggleCompleted,
+    isProgramPurchased,
   };
-};
+}

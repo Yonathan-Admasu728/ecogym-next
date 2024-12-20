@@ -1,5 +1,6 @@
 // app/privacy-policy/page.tsx
 import { Metadata } from 'next';
+
 import PrivacyPolicyContent from './PrivacyPolicyContent';
 import StructuredData from '../components/StructuredData';
 

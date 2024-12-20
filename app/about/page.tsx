@@ -1,6 +1,7 @@
 // app/about/page.tsx
 import { Metadata } from 'next';
 import Head from 'next/head';
+
 import AboutContent from './AboutContent';
 
 export const metadata: Metadata = {

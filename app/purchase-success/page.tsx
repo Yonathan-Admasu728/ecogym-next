@@ -1,10 +1,11 @@
 // app/purchase-success/page.tsx
 'use client';
 
-import React, { useEffect, useState, Suspense } from 'react';
-import { useSearchParams, useRouter } from 'next/navigation';
-import { useAuth } from '../context/AuthContext';
 import Link from 'next/link';
+import { useSearchParams, useRouter } from 'next/navigation';
+import React, { useEffect, useState, Suspense } from 'react';
+
+import { useAuth } from '../context/AuthContext';
 import { PaymentService, handleApiError } from '../services/PaymentService';
 
 interface PurchaseDetails {
@@ -70,7 +71,7 @@ const PurchaseSuccessPage = () => {
   if (isVerifying) {
     return (
       <div className="flex justify-center items-center h-screen">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise" />
       </div>
     );
   }

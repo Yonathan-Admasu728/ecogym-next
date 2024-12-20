@@ -1,8 +1,8 @@
 // app/faq/FAQContent.tsx
 'use client';
 
-import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState } from 'react';
 import { FaChevronDown } from 'react-icons/fa';
 
 interface FAQ {

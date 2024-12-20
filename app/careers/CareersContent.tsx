@@ -1,8 +1,8 @@
 // app/careers/CareersContent.tsx
 'use client';
 
-import React from 'react';
 import { motion } from 'framer-motion';
+import React from 'react';
 import { FaLightbulb, FaHeart, FaUsers, FaRocket } from 'react-icons/fa';
 
 const CareersContent = () => {

@@ -1,5 +1,6 @@
 import { User as FirebaseUser } from 'firebase/auth';
 
+// Program Types
 export interface Trainer {
   id: string;
   profile_picture?: string;
@@ -27,12 +28,12 @@ export interface Session {
   video_url?: string;
   thumbnail?: string;
   order: number;
-  difficulty_level: number; // 1-10 scale for progression tracking
-  prerequisites?: string[]; // IDs of sessions that must be completed first
+  difficulty_level: number;
+  prerequisites?: string[];
   equipment_needed?: string[];
   key_learnings?: string[];
   progress?: SessionProgress;
-  is_preview?: boolean; // For free preview sessions
+  is_preview?: boolean;
 }
 
 export interface ProgramProgress {
@@ -52,7 +53,7 @@ export interface Program {
   detailed_description?: string;
   thumbnail: string;
   thumbnailUrl?: string;
-  duration: string; // Total program duration
+  duration: string;
   total_sessions: number;
   level: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
   category: string;
@@ -66,16 +67,12 @@ export interface Program {
   isFree: boolean;
   sessions: Session[];
   progress?: ProgramProgress;
-  
-  // Program structure metadata
   program_type: 'single_session' | 'multi_session_linear' | 'multi_session_flexible';
   estimated_completion_days?: number;
   recommended_schedule?: {
     sessions_per_week: number;
-    rest_days: number[];  // 0 = Sunday, 6 = Saturday
+    rest_days: number[];
   };
-  
-  // Program features
   features?: string[];
   learning_outcomes?: string[];
   prerequisites?: {
@@ -83,8 +80,6 @@ export interface Program {
     equipment?: string[];
     prior_experience?: string[];
   };
-  
-  // Community aspects
   community_features?: {
     has_community_chat?: boolean;
     has_trainer_qa?: boolean;
@@ -92,8 +87,7 @@ export interface Program {
   };
 }
 
-export type User = FirebaseUser;
-
+// Component Props Types
 export interface ProgramCardProps {
   program: Program;
   isFeatured: boolean;
@@ -123,4 +117,53 @@ export interface ProgramProgressStats {
   currentStreak: number;
   totalMinutesCompleted: number;
   averageSessionsPerWeek: number;
+}
+
+// Auth Types
+export type User = FirebaseUser;
+
+export interface AuthError {
+  code?: string;
+  message: string;
+  name?: string;
+}
+
+// Payment Types
+export interface PurchasedProgram extends Program {
+  purchaseDate: string;
+  accessType: 'purchase' | 'subscription' | 'trial';
+}
+
+export interface PaymentError {
+  response?: {
+    status?: number;
+    data?: {
+      error?: string;
+    };
+  };
+  message: string;
+}
+
+export interface CheckoutSession {
+  sessionId: string;
+  url: string;
+}
+
+export interface PurchaseStatus {
+  isPurchased: boolean;
+  accessType: 'purchase' | 'subscription' | 'trial' | null;
+}
+
+export interface BulkPurchaseStatus {
+  [programId: string]: {
+    isPurchased: boolean;
+    accessType: 'purchase' | 'subscription' | 'trial' | null;
+  };
+}
+
+// Schema Types
+export interface SchemaOrg {
+  "@context": "https://schema.org";
+  "@type": string;
+  [key: string]: unknown;
 }

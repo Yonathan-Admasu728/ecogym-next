@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
 import { loadStripe } from '@stripe/stripe-js';
+import { useRouter } from 'next/navigation';
+import React, { useState } from 'react';
+
 import { useAuth } from '../context/AuthContext';
 import { PaymentService } from '../services/PaymentService';
-import { useRouter } from 'next/navigation';
+
 
 const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY!);
 
@@ -35,7 +37,7 @@ const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, tit
       }
 
       const sessionResponse = await PaymentService.createCheckoutSession(programId);
-      if (!sessionResponse || !sessionResponse.sessionId) {
+      if (!sessionResponse?.sessionId) {
         throw new Error('Failed to create checkout session');
       }
 

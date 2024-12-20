@@ -2,10 +2,11 @@
 
 'use client';
 
-import { useAuth } from '../context/AuthContext';
 import { useRouter } from 'next/navigation';
 import { useState, useEffect } from 'react';
+
 import UserProfile from '../components/UserProfile';
+import { useAuth } from '../context/AuthContext';
 import { User } from '../types';
 
 const ProfilePage: React.FC = () => {

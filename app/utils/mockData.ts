@@ -1,4 +1,6 @@
-export const mockTrainers = {
+import { Program, Trainer } from '../types';
+
+export const mockTrainers: Record<string, Trainer> = {
   sarah: {
     id: 'trainer_sarah',
     profile_picture: '/images/trainer-sarah.png',
@@ -31,7 +33,7 @@ export const mockTrainers = {
   }
 };
 
-export const mockPrograms = [
+export const mockPrograms: Program[] = [
   {
     id: '21-day-calisthenics',
     title: '21-Day Calisthenics Challenge',
@@ -43,12 +45,16 @@ export const mockPrograms = [
     total_sessions: 21,
     level: 'All Levels',
     trainer: mockTrainers.emily,
-    featured: true,
     thumbnail: '/images/strength.png',
+    thumbnailUrl: '/images/strength.png',
     price: 49.99,
     isFree: false,
     program_type: 'multi_session_linear',
     estimated_completion_days: 21,
+    average_rating: 4.8,
+    review_count: 156,
+    ecoImpact: 'Reduces carbon footprint by eliminating gym commute',
+    stripe_price_id: 'price_calisthenics21',
     recommended_schedule: {
       sessions_per_week: 6,
       rest_days: [0] // Sunday rest day
@@ -57,6 +63,13 @@ export const mockPrograms = [
       fitness_level: 'No specific level required',
       equipment: ['Pull-up bar (recommended but not required)'],
       prior_experience: []
+    },
+    features: ['Progressive workouts', 'Form tutorials', 'Mobility work'],
+    learning_outcomes: ['Master basic calisthenics', 'Build strength', 'Improve mobility'],
+    community_features: {
+      has_community_chat: true,
+      has_trainer_qa: true,
+      has_progress_sharing: true
     },
     sessions: [
       {
@@ -90,7 +103,6 @@ export const mockPrograms = [
         thumbnail: '/images/calisthenics/day2.jpg',
         equipment_needed: []
       }
-      // Additional sessions would continue with progressive difficulty
     ]
   },
   {
@@ -104,15 +116,26 @@ export const mockPrograms = [
     total_sessions: 8,
     level: 'Beginner',
     trainer: mockTrainers.sarah,
-    featured: true,
     thumbnail: '/images/med1.png',
+    thumbnailUrl: '/images/med1.png',
     price: 29.99,
     isFree: false,
     program_type: 'multi_session_flexible',
     estimated_completion_days: 28,
+    average_rating: 4.9,
+    review_count: 234,
+    ecoImpact: 'Zero environmental impact meditation practice',
+    stripe_price_id: 'price_mindfulness',
     recommended_schedule: {
       sessions_per_week: 2,
       rest_days: [] // Flexible schedule
+    },
+    features: ['Guided meditations', 'Mindfulness exercises', 'Stress reduction techniques'],
+    learning_outcomes: ['Develop mindfulness practice', 'Reduce stress', 'Improve focus'],
+    community_features: {
+      has_community_chat: true,
+      has_trainer_qa: true,
+      has_progress_sharing: true
     },
     sessions: [
       {
@@ -132,7 +155,6 @@ export const mockPrograms = [
           'Creating a meditation space'
         ]
       }
-      // Additional sessions would follow
     ]
   },
   {
@@ -146,11 +168,22 @@ export const mockPrograms = [
     total_sessions: 1,
     level: 'Intermediate',
     trainer: mockTrainers.emily,
-    featured: true,
     thumbnail: '/images/hiit.png',
+    thumbnailUrl: '/images/hiit.png',
     price: 4.99,
     isFree: false,
     program_type: 'single_session',
+    average_rating: 4.7,
+    review_count: 89,
+    ecoImpact: 'No equipment needed, eco-friendly workout',
+    stripe_price_id: 'price_hiit30',
+    features: ['Full-body workout', 'High-intensity exercises', 'Modifications provided'],
+    learning_outcomes: ['Improve cardiovascular fitness', 'Boost metabolism', 'Build endurance'],
+    community_features: {
+      has_community_chat: false,
+      has_trainer_qa: true,
+      has_progress_sharing: true
+    },
     sessions: [
       {
         id: 'hiit-main',

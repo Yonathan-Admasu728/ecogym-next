@@ -1,5 +1,6 @@
 // app/terms-of-service/page.tsx
 import { Metadata } from 'next';
+
 import TermsOfServiceContent from './TermsOfServiceContent';
 import StructuredData from '../components/StructuredData';
 

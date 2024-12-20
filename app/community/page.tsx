@@ -1,5 +1,6 @@
 // app/community/page.tsx
 import { Metadata } from 'next';
+
 import CommunityContent from './CommunityContent';
 import StructuredData from '../components/StructuredData';
 

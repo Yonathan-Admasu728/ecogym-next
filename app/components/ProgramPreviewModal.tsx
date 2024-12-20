@@ -2,6 +2,7 @@
 // The file is kept temporarily for reference but should be removed in the next cleanup.
 
 import React from 'react';
+
 import { Program } from '../types';
 
 interface ProgramPreviewModalProps {

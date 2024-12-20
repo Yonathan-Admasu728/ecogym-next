@@ -1,5 +1,6 @@
 // app/blog/[slug]/page.tsx
 import { Metadata } from 'next';
+
 import BlogPostContent from './BlogPostContent';
 import StructuredData from '../../components/StructuredData';
 

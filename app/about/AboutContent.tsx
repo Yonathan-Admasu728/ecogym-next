@@ -1,9 +1,10 @@
 // app/about/AboutContent.tsx
 'use client';
 
-import React from 'react';
 import Image from 'next/image';
+import React from 'react';
 import { FaDumbbell, FaYinYang, FaHeartbeat, FaBrain } from 'react-icons/fa';
+
 import SEO from '../components/SEO';
 
 const AboutContent = () => {

@@ -1,56 +1,116 @@
-// PaymentService.ts
-import axios from 'axios';
+import { AxiosError } from 'axios';
 
-const axiosInstance = axios.create({
-  baseURL: '',  // Empty since we're using relative paths
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+import {
+  CheckoutSessionResponse,
+  PaymentError,
+  PurchaseDetails,
+  PurchaseStatusResponse,
+  PurchasedProgramsResponse,
+} from '../types/payment';
+import axiosInstance from '../utils/axiosConfig';
+import { logger } from '../utils/logger';
 
-export class PaymentService {
-  static async createCheckoutSession(programId: string): Promise<{ sessionId: string } | null> {
-    try {
-      const response = await axiosInstance.post('/api/payments/create-checkout-session', { program_id: programId });
-      return { sessionId: response.data.session_id };
-    } catch (error) {
-      console.error('Error creating checkout session:', error);
-      return null;
-    }
+export class PaymentServiceError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'PaymentServiceError';
+  }
+}
+
+export async function createCheckoutSession(programId: string): Promise<CheckoutSessionResponse> {
+  try {
+    const response = await axiosInstance.post<CheckoutSessionResponse>('/payments/create-checkout-session', {
+      programId,
+    });
+    return response.data;
+  } catch (error) {
+    handlePaymentError(error, 'create checkout session');
+    throw error; // TypeScript knows this is unreachable but it's good practice
+  }
+}
+
+export async function getPurchasedPrograms(): Promise<string[]> {
+  try {
+    const response = await axiosInstance.get<PurchasedProgramsResponse>('/payments/purchased-programs');
+    return response.data.programs;
+  } catch (error) {
+    handlePaymentError(error, 'get purchased programs');
+    throw error;
+  }
+}
+
+export async function checkSubscriptionStatus(programId: string): Promise<boolean> {
+  try {
+    const response = await axiosInstance.get<PurchaseStatusResponse>(`/payments/subscription-status/${programId}`);
+    return response.data.isPurchased;
+  } catch (error) {
+    handlePaymentError(error, 'check subscription status');
+    throw error;
+  }
+}
+
+export async function checkPurchaseStatus(sessionId: string): Promise<PurchaseStatusResponse> {
+  try {
+    const response = await axiosInstance.get<PurchaseStatusResponse>(`/payments/check-purchase-status/${sessionId}`);
+    return response.data;
+  } catch (error) {
+    handlePaymentError(error, 'check purchase status');
+    throw error;
+  }
+}
+
+export async function verifyPurchase(sessionId: string): Promise<boolean> {
+  try {
+    const response = await axiosInstance.post<PurchaseStatusResponse>('/payments/verify-purchase', {
+      sessionId,
+    });
+    return response.data.isPurchased;
+  } catch (error) {
+    handlePaymentError(error, 'verify purchase');
+    throw error;
+  }
+}
+
+function handlePaymentError(error: unknown, context: string): never {
+  if (error instanceof AxiosError) {
+    const status = error.response?.status;
+    const errorData = error.response?.data as PaymentError | undefined;
+    const message = errorData?.message ?? error.message;
+    const code = error.code;
+
+    logger.error(`Payment Error: ${context}`, {
+      status,
+      message,
+      code,
+      url: error.config?.url,
+    });
+
+    throw new PaymentServiceError(
+      `Failed to ${context}: ${message}`,
+      status,
+      code
+    );
   }
 
-  static async checkPurchaseStatus(programId: string): Promise<{ purchased: boolean }> {
-    try {
-      const response = await axiosInstance.get('/api/payments/check-purchase-status', {
-        params: { program_id: programId }
-      });
-      return { purchased: response.data.isPurchased };
-    } catch (error) {
-      console.error('Error checking purchase status:', error);
-      // For demo purposes, if there's an error, assume not purchased
-      return { purchased: false };
-    }
-  }
+  logger.error(`Unexpected error during ${context}`, error);
+  throw new PaymentServiceError(`An unexpected error occurred while ${context}`);
+}
 
-  static async verifyPurchase(programId: string): Promise<boolean> {
-    try {
-      const response = await axiosInstance.get('/api/payments/check-purchase-status', {
-        params: { program_id: programId }
-      });
-      return response.data.isPurchased;
-    } catch (error) {
-      console.error('Error verifying purchase:', error);
-      return false;
-    }
-  }
-
-  static async fetchPurchasedPrograms(): Promise<any[]> {
-    try {
-      const response = await axiosInstance.get('/api/payments/purchased-programs');
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching purchased programs:', error);
-      return [];
-    }
+export async function getPurchaseDetails(sessionId: string): Promise<PurchaseDetails> {
+  try {
+    const response = await axiosInstance.get<PurchaseDetails>(`/payments/purchase-details/${sessionId}`);
+    return {
+      programId: response.data.programId,
+      status: response.data.status,
+      purchaseDate: response.data.purchaseDate,
+      expiryDate: response.data.expiryDate,
+    };
+  } catch (error) {
+    handlePaymentError(error, 'get purchase details');
+    throw error;
   }
 }

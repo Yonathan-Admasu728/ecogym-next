@@ -1,6 +1,7 @@
 export { default as Header } from './Header';
 export { default as HeroSection } from './HeroSection';
 export { default as FeaturedPrograms } from './FeaturedPrograms';
+export { default as DashboardFeaturedPrograms } from './DashboardFeaturedPrograms';
 export { default as RecommendedPrograms } from './RecommendedPrograms';
 export { default as Testimonials } from './Testimonials';
 export { default as CallToAction } from './CallToAction';

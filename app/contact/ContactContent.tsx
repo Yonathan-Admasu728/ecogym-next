@@ -1,8 +1,8 @@
 // app/contact/ContactContent.tsx
 'use client';
 
-import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 
 const ContactContent = () => {
@@ -117,7 +117,7 @@ const ContactContent = () => {
                   onChange={handleChange}
                   required
                   className="mt-1 block w-full rounded-md bg-gray-700 border-transparent focus:border-teal-500 focus:bg-gray-600 focus:ring-0 text-white"
-                ></textarea>
+                 />
               </div>
               <button
                 type="submit"
@@ -144,7 +144,7 @@ const ContactContent = () => {
             allowFullScreen={true}
             aria-hidden="false" 
             tabIndex={0}
-          ></iframe>
+           />
         </motion.div>
       </div>
     </div>

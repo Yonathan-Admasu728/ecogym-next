@@ -1,11 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useRouter } from 'next/navigation';
-import { DashboardSidebar, PurchasedPrograms, Favorites, WatchLater, FeaturedPrograms, RecommendedPrograms } from '../components';
-import { usePrograms } from '../context/ProgramContext';
 import { motion } from 'framer-motion';
+import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
+
+import { DashboardSidebar, PurchasedPrograms, Favorites, WatchLater, DashboardFeaturedPrograms, RecommendedPrograms } from '../components';
+import { useAuth } from '../context/AuthContext';
+import { usePrograms } from '../context/ProgramContext';
+
 
 const DashboardPage = () => {
   const { user, loading: authLoading } = useAuth();
@@ -55,7 +57,7 @@ const DashboardPage = () => {
             >
               {isLoading ? (
                 <div className="flex justify-center items-center h-64">
-                  <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400"></div>
+                  <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400" />
                 </div>
               ) : error ? (
                 <div className="text-red-500 text-center p-8 bg-darkBlue-800 rounded-lg shadow-lg">
@@ -63,7 +65,7 @@ const DashboardPage = () => {
                   <p>{error}</p>
                 </div>
               ) : (
-                <FeaturedPrograms programs={featuredPrograms} />
+                <DashboardFeaturedPrograms programs={featuredPrograms} />
               )}
             </motion.div>
           </>
@@ -100,7 +102,7 @@ const DashboardPage = () => {
   if (authLoading) {
     return (
       <div className="flex justify-center items-center h-screen bg-darkBlue-900">
-        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400"></div>
+        <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400" />
       </div>
     );
   }

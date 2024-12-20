@@ -1,6 +1,8 @@
 'use client';
 
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+
+import { useAuth } from '../context/AuthContext';
 import { Program } from '../types';
 import { 
   fetchPrograms as apiFetchPrograms, 
@@ -11,7 +13,6 @@ import {
   UserPrograms
 } from '../utils/api';
 import { eventBus } from '../utils/eventBus';
-import { useAuth } from '../context/AuthContext';
 
 interface ProgramContextType {
   allPrograms: Program[];

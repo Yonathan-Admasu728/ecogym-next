@@ -1,6 +1,6 @@
+import Link from 'next/link';
 import React from 'react';
 import { FaHome, FaHeart, FaClock, FaDumbbell, FaUser, FaTimes, FaChartLine } from 'react-icons/fa';
-import Link from 'next/link';
 
 interface DashboardSidebarProps {
   activeSection: string;
@@ -21,7 +21,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({ activeSection, setA
 
   return (
     <>
-      <div className={`fixed inset-0 bg-black bg-opacity-70 z-20 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={toggleSidebar}></div>
+      <div className={`fixed inset-0 bg-black bg-opacity-70 z-20 transition-opacity duration-300 ${isOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`} onClick={toggleSidebar} />
       <aside className={`bg-darkBlue-800 text-white w-64 min-h-screen fixed left-0 top-0 z-30 transform transition-transform duration-300 ease-in-out ${isOpen ? 'translate-x-0' : '-translate-x-full'} md:relative md:translate-x-0`}>
         <div className="flex justify-between items-center p-4 border-b border-darkBlue-700 md:hidden">
           <h2 className="text-xl font-semibold text-white">Menu</h2>

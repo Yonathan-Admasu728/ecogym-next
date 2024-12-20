@@ -1,45 +1,21 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { FaStar, FaArrowRight } from 'react-icons/fa';
-import { Program } from '../types';
-import Carousel from './Carousel';
 import { motion } from 'framer-motion';
-import { useProgramActions } from '../hooks/useProgramActions';
+import { useRouter } from 'next/navigation';
+import React from 'react';
+import { FaStar, FaArrowRight } from 'react-icons/fa';
+
+import Carousel from './Carousel';
 import { useAuth } from '../context/AuthContext';
-import { usePrograms } from '../context/ProgramContext';
-import { ProgramService } from '../services/ProgramService';
+import { useProgramActions } from '../hooks/useProgramActions';
+import { useRecommendedPrograms } from '../hooks/usePrograms';
+import { Program } from '../types';
 
 const RecommendedPrograms: React.FC = () => {
   const router = useRouter();
-  const { handleToggleFavorite } = useProgramActions();
+  const { handleToggleFavorite, isProgramPurchased } = useProgramActions();
   const { user } = useAuth();
-  const { isPurchased } = usePrograms();
-  const [programs, setPrograms] = useState<Program[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    const loadRecommendedPrograms = async () => {
-      if (user) {
-        try {
-          const recommendedPrograms = await ProgramService.getRecommendedPrograms(user.uid);
-          setPrograms(recommendedPrograms);
-          setError(null);
-        } catch (err) {
-          console.error('Error fetching recommended programs:', err);
-          setError('Failed to load recommended programs. Please try again later.');
-        } finally {
-          setIsLoading(false);
-        }
-      } else {
-        setIsLoading(false);
-      }
-    };
-
-    loadRecommendedPrograms();
-  }, [user]);
+  const { programs, isLoading, isError } = useRecommendedPrograms();
 
   const handleExplore = (programId: string) => {
     router.push(`/programs/${programId}`);
@@ -47,11 +23,61 @@ const RecommendedPrograms: React.FC = () => {
 
   const handleQuickAddToFavorites = (programId: string) => {
     handleToggleFavorite(programId);
-    // You might want to add some visual feedback here
   };
 
   const handleSignIn = () => {
     router.push('/login');
+  };
+
+  const renderContent = () => {
+    if (isLoading) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400" />
+        </div>
+      );
+    }
+
+    if (isError) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-lightBlue-100">Failed to load recommended programs. Please try again later.</p>
+        </div>
+      );
+    }
+
+    if (!user) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-lightBlue-100">Sign in to see personalized recommendations.</p>
+        </div>
+      );
+    }
+
+    if (!programs || programs.length === 0) {
+      return (
+        <div className="flex justify-center items-center h-64">
+          <p className="text-lightBlue-100">No recommended programs available at the moment.</p>
+        </div>
+      );
+    }
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, delay: 0.2 }}
+      >
+        <Carousel 
+          programs={programs} 
+          onExplore={handleExplore} 
+          onQuickAddToFavorites={handleQuickAddToFavorites}
+          isAuthenticated={!!user}
+          isPurchased={(programId) => isProgramPurchased(programId)}
+          onSignIn={handleSignIn}
+        />
+      </motion.div>
+    );
   };
 
   return (
@@ -82,38 +108,9 @@ const RecommendedPrograms: React.FC = () => {
             Discover programs tailored to your interests and goals, helping you achieve optimal health and well-being.
           </p>
         </motion.div>
-        {isLoading ? (
-          <div className="flex justify-center items-center h-64">
-            <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400"></div>
-          </div>
-        ) : error ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-lightBlue-100">{error}</p>
-          </div>
-        ) : !user ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-lightBlue-100">Sign in to see personalized recommendations.</p>
-          </div>
-        ) : programs.length === 0 ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-lightBlue-100">No recommended programs available at the moment.</p>
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <Carousel 
-              programs={programs} 
-              onExplore={handleExplore} 
-              onQuickAddToFavorites={handleQuickAddToFavorites}
-              isAuthenticated={!!user}
-              isPurchased={isPurchased}
-              onSignIn={handleSignIn}
-            />
-          </motion.div>
-        )}
+
+        {renderContent()}
+
         <motion.div 
           className="text-center mt-16"
           initial={{ opacity: 0, y: 20 }}

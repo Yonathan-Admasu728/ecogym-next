@@ -1,6 +1,8 @@
-// app/utils/api.ts
-import axios from 'axios';
+import { AxiosError } from 'axios';
+
 import { Program } from '../types';
+import axiosInstance from './axiosConfig';
+import { logger } from './logger';
 
 export interface UserPrograms {
   purchased_programs: Program[];
@@ -8,181 +10,157 @@ export interface UserPrograms {
   watch_later_programs: Program[];
 }
 
-export const fetchUserPrograms = async (token: string, getIdToken: () => Promise<string | null>): Promise<{
-  purchased_programs: Program[];
-  favorite_programs: Program[];
-  watch_later_programs: Program[];
-}> => {
-  console.log("fetchUserPrograms called with token:", token.substring(0, 10) + "...");
-  try {
-    const response = await axios.get('/api/user/programs', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+interface ApiResponse<T> {
+  data: T;
+  message?: string;
+  status: number;
+}
+
+class ApiError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+    public code?: string
+  ) {
+    super(message);
+    this.name = 'ApiError';
+  }
+}
+
+const handleApiError = (error: unknown, context: string): never => {
+  if (error instanceof AxiosError) {
+    const status = error.response?.status;
+    const message = error.response?.data?.message || error.message;
+    const code = error.code;
+
+    logger.error(`API Error: ${context}`, {
+      status,
+      message,
+      code,
+      url: error.config?.url
     });
-    
-    console.log("User programs response status:", response.status);
 
-    if (response.status !== 200) {
-      throw new Error(`HTTP error! status: ${response.status}`);
-    }
+    throw new ApiError(
+      `Failed to ${context}: ${message}`,
+      status,
+      code
+    );
+  }
 
-    const data = response.data;
-    console.log("User programs data:", data);
-    return data;
+  logger.error(`Unexpected error during ${context}`, error);
+  throw new ApiError(`An unexpected error occurred while ${context}`);
+};
+
+export const getProgram = async (programId: string): Promise<Program> => {
+  try {
+    const response = await axiosInstance.get<ApiResponse<Program>>(`/programs/${programId}`);
+    return response.data.data;
   } catch (error) {
-    if (axios.isAxiosError(error)) {
-      console.error('Error fetching user programs:', error.message);
+    return handleApiError(error, `fetch program ${programId}`);
+  }
+};
 
-      // If the error is due to an invalid token, try to refresh the token
-      if (error.response && error.response.status === 401) {
-        console.log('Token is invalid or expired. Attempting to refresh token...');
-        const newToken = await getIdToken();
-        if (newToken) {
-          return await fetchUserPrograms(newToken, getIdToken); // Retry with the new token
-        } else {
-          throw new Error('Failed to refresh token');
-        }
-      }
-    } else {
-      console.error('Unexpected error fetching user programs:', error);
-    }
-
-    throw error;
+export const fetchUserPrograms = async (): Promise<UserPrograms> => {
+  try {
+    const response = await axiosInstance.get<ApiResponse<UserPrograms>>('/user/programs');
+    return response.data.data;
+  } catch (error) {
+    return handleApiError(error, 'fetch user programs');
   }
 };
 
 export const fetchFeaturedPrograms = async (): Promise<Program[]> => {
-  console.log("fetchFeaturedPrograms called");
   try {
-    const token = localStorage.getItem('authToken');
-    const headers: Record<string, string> = {
-      'Accept': 'application/json',
-    };
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await axios.get('/api/programs/featured', { headers });
-    console.log("Featured programs response status:", response.status);
-    if (response.status !== 200) {
-      console.error('Error response:', response.statusText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`);
-    }
-    const data = response.data;
-    console.log("Featured programs data:", data);
-    return data;
+    const response = await axiosInstance.get<ApiResponse<Program[]>>('/programs/featured');
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching featured programs:', error);
-    throw error;
+    return handleApiError(error, 'fetch featured programs');
   }
 };
 
-export const fetchRecommendedPrograms = async (token: string): Promise<Program[]> => {
-  console.log("fetchRecommendedPrograms called");
+export const fetchRecommendedPrograms = async (): Promise<Program[]> => {
   try {
-    const response = await axios.get('/api/programs/recommended', {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    });
-    console.log("Recommended programs response status:", response.status);
-    if (response.status !== 200) {
-      console.error('Error response:', response.statusText);
-      throw new Error(`HTTP error! status: ${response.status}, message: ${response.statusText}`);
-    }
-    const data = response.data;
-    console.log("Recommended programs data:", data);
-    return data;
+    const response = await axiosInstance.get<ApiResponse<Program[]>>('/programs/recommended');
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching recommended programs:', error);
-    throw error;
+    return handleApiError(error, 'fetch recommended programs');
   }
 };
 
 export const fetchPrograms = async (): Promise<Program[]> => {
   try {
-    const token = localStorage.getItem('authToken');
-    const headers: Record<string, string> = {
-      'Accept': 'application/json',
-    };
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch('/api/programs', { headers });
-    if (!response.ok) {
-      throw new Error('Failed to fetch programs');
-    }
-    return await response.json();
+    const response = await axiosInstance.get<ApiResponse<Program[]>>('/programs');
+    return response.data.data;
   } catch (error) {
-    console.error('Error fetching programs:', error);
-    throw error;
+    return handleApiError(error, 'fetch programs');
   }
 };
 
 export const fetchProgramsByCategory = async (category: string): Promise<Program[]> => {
   try {
-    const token = localStorage.getItem('authToken');
-    const headers: Record<string, string> = {
-      'Accept': 'application/json',
-    };
-    
-    if (token) {
-      headers['Authorization'] = `Bearer ${token}`;
-    }
-
-    const response = await fetch(`/api/programs?category=${category}`, { headers });
-    if (!response.ok) {
-      throw new Error(`Failed to fetch ${category} programs`);
-    }
-    return await response.json();
+    const response = await axiosInstance.get<ApiResponse<Program[]>>(`/programs?category=${encodeURIComponent(category)}`);
+    return response.data.data;
   } catch (error) {
-    console.error(`Error fetching ${category} programs:`, error);
-    throw error;
+    return handleApiError(error, `fetch ${category} programs`);
   }
 };
 
 export const toggleFavorite = async (programId: number): Promise<void> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('No auth token found');
+    const response = await axiosInstance.post<ApiResponse<void>>(`/user/favorites/toggle/${programId}`);
+    if (response.status !== 200) {
+      throw new ApiError('Failed to toggle favorite', response.status);
     }
-    const response = await fetch(`/api/user/favorites/toggle/${programId}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      throw new Error('Failed to toggle favorite');
-    }
+    logger.info('Successfully toggled favorite', { programId });
   } catch (error) {
-    console.error('Error toggling favorite:', error);
-    throw error;
+    handleApiError(error, `toggle favorite for program ${programId}`);
   }
 };
 
 export const toggleWatchLater = async (programId: number): Promise<void> => {
   try {
-    const token = localStorage.getItem('authToken');
-    if (!token) {
-      throw new Error('No auth token found');
+    const response = await axiosInstance.post<ApiResponse<void>>(`/user/watch-later/toggle/${programId}`);
+    if (response.status !== 200) {
+      throw new ApiError('Failed to toggle watch later', response.status);
     }
-    const response = await fetch(`/api/user/watch-later/toggle/${programId}`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-      },
-    });
-    if (!response.ok) {
-      throw new Error('Failed to toggle watch later');
-    }
+    logger.info('Successfully toggled watch later', { programId });
   } catch (error) {
-    console.error('Error toggling watch later:', error);
-    throw error;
+    handleApiError(error, `toggle watch later for program ${programId}`);
+  }
+};
+
+// Search programs
+export const searchPrograms = async (query: string): Promise<Program[]> => {
+  try {
+    const response = await axiosInstance.get<ApiResponse<Program[]>>(`/programs/search?q=${encodeURIComponent(query)}`);
+    return response.data.data;
+  } catch (error) {
+    return handleApiError(error, `search programs with query: ${query}`);
+  }
+};
+
+// Update program progress
+export const updateProgramProgress = async (programId: number, progress: number): Promise<void> => {
+  try {
+    const response = await axiosInstance.post<ApiResponse<void>>(`/user/programs/${programId}/progress`, { progress });
+    if (response.status !== 200) {
+      throw new ApiError('Failed to update program progress', response.status);
+    }
+    logger.info('Successfully updated program progress', { programId, progress });
+  } catch (error) {
+    handleApiError(error, `update progress for program ${programId}`);
+  }
+};
+
+// Rate program
+export const rateProgram = async (programId: number, rating: number): Promise<void> => {
+  try {
+    const response = await axiosInstance.post<ApiResponse<void>>(`/programs/${programId}/rate`, { rating });
+    if (response.status !== 200) {
+      throw new ApiError('Failed to rate program', response.status);
+    }
+    logger.info('Successfully rated program', { programId, rating });
+  } catch (error) {
+    handleApiError(error, `rate program ${programId}`);
   }
 };

@@ -1,5 +1,6 @@
 // app/faq/page.tsx
 import { Metadata } from 'next';
+
 import FAQContent from './FAQContent';
 import StructuredData from '../components/StructuredData';
 

@@ -1,10 +1,11 @@
 'use client';
-import React, { useState } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
-import { useAuth } from '../context/AuthContext';
-import PlaceholderAvatar from '../../public/images/placeholder-avatar.svg';
+import Link from 'next/link';
+import React, { useState } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
+
+import PlaceholderAvatar from '../../public/images/placeholder-avatar.svg';
+import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
   const { user } = useAuth();

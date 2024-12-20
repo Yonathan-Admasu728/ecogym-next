@@ -2,11 +2,12 @@
 'use client';
 
 import { useState } from 'react';
+import { FaClock } from 'react-icons/fa';
+
 import { Program } from '../types';
 import ProgramCard from './ProgramCard';
-import { FaClock } from 'react-icons/fa';
-import { toggleWatchLater } from '../utils/api';
 import ProgramDetail from './ProgramDetail';
+import { toggleWatchLater } from '../utils/api';
 
 interface WatchLaterProps {
   programs: Program[];

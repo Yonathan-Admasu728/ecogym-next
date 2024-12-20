@@ -1,11 +1,11 @@
 // app/components/InstructorModal.tsx
 
-import React from "react";
-import Image from "next/image";
 import { Dialog, Transition } from "@headlessui/react";
-import { Fragment } from "react";
 import { motion } from "framer-motion";
+import Image from "next/image";
+import React, { Fragment } from "react";
 import { FaTimes } from "react-icons/fa";
+
 import { Trainer } from "../types";
 
 interface InstructorModalProps {

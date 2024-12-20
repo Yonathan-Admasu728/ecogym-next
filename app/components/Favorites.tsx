@@ -2,11 +2,12 @@
 'use client';
 
 import { useState } from 'react';
+import { FaHeart } from 'react-icons/fa';
+
 import { Program } from '../types';
 import ProgramCard from './ProgramCard';
-import { FaHeart } from 'react-icons/fa';
-import { toggleFavorite } from '../utils/api';
 import ProgramDetail from './ProgramDetail';
+import { toggleFavorite } from '../utils/api';
 
 interface FavoritesProps {
   programs: Program[];

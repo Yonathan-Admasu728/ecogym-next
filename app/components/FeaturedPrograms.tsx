@@ -1,24 +1,23 @@
 'use client';
 
-import React from 'react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import React from 'react';
 import { FaLeaf, FaArrowRight } from 'react-icons/fa';
+
 import { Program } from '../types';
 import Carousel from './Carousel';
-import { motion } from 'framer-motion';
-import { useProgramActions } from '../hooks/useProgramActions';
 import { useAuth } from '../context/AuthContext';
-import { usePrograms } from '../context/ProgramContext';
+import { useProgramActions } from '../hooks/useProgramActions';
 
 interface FeaturedProgramsProps {
-  programs: Program[] | undefined;
+  programs?: Program[];
 }
 
-const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs }) => {
+const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs = [] }) => {
   const router = useRouter();
-  const { handleToggleFavorite } = useProgramActions();
+  const { handleToggleFavorite, isProgramPurchased } = useProgramActions();
   const { user } = useAuth();
-  const { isPurchased } = usePrograms();
 
   const handleExplore = (programId: string) => {
     router.push(`/programs/${programId}`);
@@ -31,6 +30,30 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs }) => {
   const handleSignIn = () => {
     router.push('/login');
   };
+
+  // Loading state
+  const renderLoadingState = () => (
+    <div className="animate-pulse">
+      <div className="h-64 bg-darkBlue-700 rounded-lg mb-4" />
+      <div className="h-4 bg-darkBlue-700 rounded w-3/4 mb-2" />
+      <div className="h-4 bg-darkBlue-700 rounded w-1/2" />
+    </div>
+  );
+
+  // Error state
+  const renderEmptyState = () => (
+    <div className="flex flex-col items-center justify-center h-64 bg-darkBlue-800 rounded-lg">
+      <p className="text-lightBlue-100 text-lg mb-4">
+        No featured programs available at the moment.
+      </p>
+      <button
+        onClick={() => router.push('/programs')}
+        className="btn-secondary px-6 py-2 rounded-full bg-turquoise-500 text-darkBlue-900 hover:bg-turquoise-400 transition-all duration-300"
+      >
+        View All Programs
+      </button>
+    </div>
+  );
 
   return (
     <section 
@@ -60,26 +83,28 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs }) => {
             Explore our curated selection of mindfulness practices, guided meditations, and effective home workouts designed to transform your mind and body.
           </p>
         </motion.div>
-        {!programs || programs.length === 0 ? (
-          <div className="flex justify-center items-center h-64">
-            <p className="text-lightBlue-100">No featured programs available at the moment.</p>
-          </div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
+          {programs === undefined ? (
+            renderLoadingState()
+          ) : programs.length === 0 ? (
+            renderEmptyState()
+          ) : (
             <Carousel 
               programs={programs} 
               onExplore={handleExplore}
               onQuickAddToFavorites={handleQuickAddToFavorites}
               isAuthenticated={!!user}
-              isPurchased={isPurchased}
+              isPurchased={(programId) => isProgramPurchased(programId)}
               onSignIn={handleSignIn}
             />
-          </motion.div>
-        )}
+          )}
+        </motion.div>
+
         <motion.div 
           className="text-center mt-16"
           initial={{ opacity: 0, y: 20 }}

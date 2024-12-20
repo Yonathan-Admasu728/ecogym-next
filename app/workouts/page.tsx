@@ -1,6 +1,7 @@
 // app/workouts/page.tsx
 
 import { Metadata } from 'next';
+
 import ProgramList from '../components/ProgramList';
 
 export const metadata: Metadata = {

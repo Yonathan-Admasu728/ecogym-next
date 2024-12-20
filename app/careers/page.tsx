@@ -1,5 +1,6 @@
 // app/careers/page.tsx
 import { Metadata } from 'next';
+
 import CareersContent from './CareersContent';
 import StructuredData from '../components/StructuredData';
 

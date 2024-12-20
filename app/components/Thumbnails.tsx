@@ -2,9 +2,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+
 import ThumbnailItem from './ThumbnailItem';
-import { fetchPrograms, fetchProgramsByCategory } from '../utils/api';
 import { Program } from '../types';
+import { fetchPrograms, fetchProgramsByCategory } from '../utils/api';
 
 interface ThumbnailsProps {
   category: 'all' | 'workout' | 'meditation';
