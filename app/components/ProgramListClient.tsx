@@ -11,7 +11,7 @@ import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import SignInModal from './SignInModal';
 import { useAuth } from '../context/AuthContext';
-import { createCheckoutSession, PaymentServiceError } from '../services/PaymentService';
+import { PaymentService, PaymentServiceError } from '../services/PaymentService';
 import type { Program } from '../types';
 import { logger } from '../utils/logger';
 
@@ -69,7 +69,7 @@ export default function ProgramListClient({ programs, title }: ProgramListClient
 
     setIsProcessing(true);
     try {
-      const checkoutSession = await createCheckoutSession(selectedProgram.id);
+      const checkoutSession = await PaymentService.createCheckoutSession(selectedProgram.id);
       
       if (!checkoutSession?.url) {
         throw new PaymentServiceError('Failed to create checkout session');

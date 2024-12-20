@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 
 import ProgramDetail from './ProgramDetail';
 import { useAuth } from '../context/AuthContext';
-import { createCheckoutSession, PaymentServiceError } from '../services/PaymentService';
+import { PaymentService, PaymentServiceError } from '../services/PaymentService';
 import type { Program } from '../types';
 import { logger } from '../utils/logger';
 
@@ -40,7 +40,7 @@ export default function ProgramDetailClient({ program }: Props): JSX.Element {
 
     try {
       setIsProcessing(true);
-      const checkoutSession = await createCheckoutSession(program.id);
+      const checkoutSession = await PaymentService.createCheckoutSession(program.id);
       
       if (!checkoutSession?.url) {
         throw new PaymentServiceError('Failed to create checkout session');

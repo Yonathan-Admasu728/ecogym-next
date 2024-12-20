@@ -5,7 +5,7 @@ import React, { useEffect, useState } from 'react';
 import { FaCheckCircle, FaCrown, FaHourglassHalf } from 'react-icons/fa';
 
 import { useAuth } from '../context/AuthContext';
-import { checkPurchaseStatus, PaymentServiceError } from '../services/PaymentService';
+import { PaymentService, PaymentServiceError } from '../services/PaymentService';
 import type { PurchaseStatusResponse } from '../types/payment';
 import { logger } from '../utils/logger';
 
@@ -31,7 +31,7 @@ export default function PurchaseStatus({ programId, onStatusChange }: PurchaseSt
       }
 
       try {
-        const status = await checkPurchaseStatus(programId);
+        const status = await PaymentService.checkPurchaseStatus(programId);
         setPurchaseStatus(status);
         onStatusChange?.(status.isPurchased);
         

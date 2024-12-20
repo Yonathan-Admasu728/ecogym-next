@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
 import { useAuth } from '../context/AuthContext';
-import { checkPurchaseStatus, PaymentServiceError } from '../services/PaymentService';
+import { PaymentService } from '../services/PaymentService';
 import type { Program } from '../types';
 import SignInModal from './SignInModal';
 import { logger } from '../utils/logger';
@@ -41,17 +41,13 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }): JSX.Element => {
     }
 
     try {
-      const purchaseStatus = await checkPurchaseStatus(item.id);
+      const purchaseStatus = await PaymentService.checkPurchaseStatus(item.id);
       if (purchaseStatus.isPurchased) {
         router.push(`/programs/${item.id}/sessions/access`);
       } else {
         router.push(`/programs/${item.id}`);
       }
     } catch (error) {
-      const errorMessage = error instanceof PaymentServiceError 
-        ? error.message 
-        : 'Failed to check purchase status';
-      
       logger.error('Failed to check program purchase status', {
         error,
         programId: item.id,

@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 
-import * as PaymentService from '../services/PaymentService';
+import { PaymentService } from '../services/PaymentService';
 import { Program } from '../types';
 import { logger } from '../utils/logger';
 
@@ -23,7 +23,7 @@ export function useProgramActions(): ProgramActions {
   const [watchLaterIds, setWatchLaterIds] = useState<Set<string>>(new Set());
   const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
   const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-  const [purchasedProgramIds, setPurchasedProgramIds] = useState<Set<string>>(new Set());
+  const [purchasedProgramIds] = useState<Set<string>>(new Set());
 
   const handlePurchase = useCallback(async (program: Program) => {
     setIsLoading(true);
