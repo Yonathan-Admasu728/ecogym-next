@@ -23,6 +23,6 @@ export const metadata: Metadata = {
   },
 };
 
-export default function MeditationsPage() {
+export default async function MeditationsPage(): Promise<JSX.Element> {
   return <ProgramList title="Meditation Programs" category="Meditation" />;
 }

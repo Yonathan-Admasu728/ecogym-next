@@ -8,6 +8,7 @@ import { Program } from '../types';
 import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import { toggleWatchLater } from '../utils/api';
+import { logger } from '../utils/logger';
 
 interface WatchLaterProps {
   programs: Program[];
@@ -17,12 +18,12 @@ const WatchLater: React.FC<WatchLaterProps> = ({ programs: initialPrograms }) =>
   const [watchLaterPrograms, setWatchLaterPrograms] = useState<Program[]>(initialPrograms);
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
-  const handleToggleWatchLater = async (programId: number) => {
+  const handleToggleWatchLater = async (programId: string) => {
     try {
-      await toggleWatchLater(programId);
+      await toggleWatchLater(parseInt(programId, 10));
       setWatchLaterPrograms(watchLaterPrograms.filter(program => program.id !== programId));
     } catch (error) {
-      console.error('Error toggling watch later:', error);
+      logger.error('Error toggling watch later', { error });
     }
   };
 
@@ -35,7 +36,7 @@ const WatchLater: React.FC<WatchLaterProps> = ({ programs: initialPrograms }) =>
   };
 
   const handleEnroll = () => {
-    console.log('Enrolling in program:', selectedProgram?.title);
+    logger.info('Enrolling in program', { title: selectedProgram?.title });
     setSelectedProgram(null);
   };
 
@@ -45,6 +46,8 @@ const WatchLater: React.FC<WatchLaterProps> = ({ programs: initialPrograms }) =>
         program={selectedProgram}
         onBack={handleBack}
         onEnroll={handleEnroll}
+        isAuthenticated={true}
+        isProcessing={false}
       />
     );
   }
@@ -62,10 +65,14 @@ const WatchLater: React.FC<WatchLaterProps> = ({ programs: initialPrograms }) =>
               key={program.id}
               program={program}
               isFeatured={false}
-              onExplore={handleExplore}
-              onToggleWatchLater={() => handleToggleWatchLater(program.id)}
-              isWatchLater={true}
-              isPurchased={program.purchased_by_user}  // Pass isPurchased prop
+              onExplore={(id) => {
+                const prog = watchLaterPrograms.find(p => p.id === id);
+                if (prog) handleExplore(prog);
+              }}
+              isPurchased={false}
+              isAuthenticated={true}
+              onQuickAddToFavorites={() => handleToggleWatchLater(program.id)}
+              onSignIn={() => {}}
             />
           ))}
         </div>

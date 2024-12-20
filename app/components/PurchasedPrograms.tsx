@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { FaShoppingCart } from 'react-icons/fa';
 
 import { Program } from '../types';
+import { logger } from '../utils/logger';
 import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 
@@ -15,8 +16,11 @@ interface PurchasedProgramsProps {
 const PurchasedPrograms: React.FC<PurchasedProgramsProps> = ({ programs }) => {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
-  const handleExplore = (program: Program) => {
-    setSelectedProgram(program);
+  const handleExplore = (programId: string) => {
+    const program = programs.find(p => p.id === programId);
+    if (program) {
+      setSelectedProgram(program);
+    }
   };
 
   const handleBack = () => {
@@ -24,7 +28,7 @@ const PurchasedPrograms: React.FC<PurchasedProgramsProps> = ({ programs }) => {
   };
 
   const handleEnroll = () => {
-    console.log('Enrolling in program:', selectedProgram?.title);
+    logger.info('Enrolling in program', { title: selectedProgram?.title });
     setSelectedProgram(null);
   };
 
@@ -34,7 +38,7 @@ const PurchasedPrograms: React.FC<PurchasedProgramsProps> = ({ programs }) => {
         program={selectedProgram} 
         onBack={handleBack}
         onEnroll={handleEnroll}
-        isPurchased={true}  // This will ensure that the purchase button is not shown for purchased programs
+        isAuthenticated={true}  // User must be authenticated to have purchased programs
       />
     );
   }
@@ -54,6 +58,9 @@ const PurchasedPrograms: React.FC<PurchasedProgramsProps> = ({ programs }) => {
               isFeatured={false}
               onExplore={handleExplore}
               isPurchased={true}
+              isAuthenticated={true}
+              onQuickAddToFavorites={(id) => logger.info('Add to favorites', { programId: id })}
+              onSignIn={() => {}} // Not needed since user is already authenticated
             />
           ))}
         </div>

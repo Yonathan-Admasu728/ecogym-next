@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 import { useAuth } from '../context/AuthContext';
 import { Program } from '../types';
@@ -13,6 +13,7 @@ import {
   UserPrograms
 } from '../utils/api';
 import { eventBus } from '../utils/eventBus';
+import { logger } from '../utils/logger';
 
 interface ProgramContextType {
   allPrograms: Program[];
@@ -48,7 +49,7 @@ const useApiCache = <T,>(fetcher: () => Promise<T>) => {
       setData(result);
     } catch (err) {
       setError('Failed to fetch data. Please try again later.');
-      console.error('Error fetching data:', err);
+      logger.error('Error fetching data', { error: err });
     } finally {
       setIsLoading(false);
     }
@@ -58,7 +59,7 @@ const useApiCache = <T,>(fetcher: () => Promise<T>) => {
 };
 
 export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { getIdToken } = useAuth();
+  const { getToken } = useAuth();
   const [userPrograms, setUserPrograms] = useState<UserPrograms>({
     purchased_programs: [],
     favorite_programs: [],
@@ -71,17 +72,17 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const fetchUserProgramsCallback = useCallback(async () => {
     try {
-      const token = await getIdToken();
+      const token = await getToken();
       if (token) {
-        const programs = await apiFetchUserPrograms(token, getIdToken);
+        const programs = await apiFetchUserPrograms();
         setUserPrograms(programs);
       } else {
         throw new Error('Authentication token is missing');
       }
     } catch (error) {
-      console.error('Error fetching user programs:', error);
+      logger.error('Error fetching user programs', { error });
     }
-  }, [getIdToken]);
+  }, [getToken]);
 
   const updateUserPrograms = useCallback((updatedPrograms: Partial<UserPrograms>) => {
     setUserPrograms(prev => ({
@@ -92,15 +93,15 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const refreshUserPrograms = useCallback(async () => {
     try {
-      const token = await getIdToken();
+      const token = await getToken();
       if (token) {
-        const programs = await apiFetchUserPrograms(token, getIdToken);
+        const programs = await apiFetchUserPrograms();
         setUserPrograms(programs);
       }
     } catch (error) {
-      console.error('Error refreshing user programs:', error);
+      logger.error('Error refreshing user programs', { error });
     }
-  }, [getIdToken]);
+  }, [getToken]);
 
   const toggleFavoriteCallback = useCallback(async (programId: number) => {
     try {
@@ -108,7 +109,7 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await refreshUserPrograms();
       eventBus.publish('userProgramsUpdated');
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      logger.error('Error toggling favorite', { error });
     }
   }, [refreshUserPrograms]);
   
@@ -118,7 +119,7 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
       await refreshUserPrograms();
       eventBus.publish('userProgramsUpdated');
     } catch (error) {
-      console.error('Error toggling watch later:', error);
+      logger.error('Error toggling watch later', { error });
     }
   }, [refreshUserPrograms]);
 
@@ -154,7 +155,7 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
   );
 };
 
-export const usePrograms = () => {
+export const usePrograms = (): ProgramContextType => {
   const context = useContext(ProgramContext);
   if (context === undefined) {
     throw new Error('usePrograms must be used within a ProgramProvider');

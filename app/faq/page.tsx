@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import FAQContent from './FAQContent';
 import StructuredData from '../components/StructuredData';
+import { SchemaOrg } from '../types';
 
 export const metadata: Metadata = {
   title: 'Frequently Asked Questions | Ecogym',
@@ -22,8 +23,10 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const SCHEMA_CONTEXT = "https://schema.org" as const;
+
+const structuredData: SchemaOrg = {
+  "@context": SCHEMA_CONTEXT,
   "@type": "FAQPage",
   "mainEntity": [
     {
@@ -38,7 +41,7 @@ const structuredData = {
   ]
 };
 
-export default function FAQPage() {
+export default function FAQPage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />

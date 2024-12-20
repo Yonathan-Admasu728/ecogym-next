@@ -12,13 +12,12 @@ interface ProgramPurchaseProps {
   programId: string;
   price: number;
   title: string;
-  stripePriceId: string;
 }
 
-const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, title, stripePriceId }) => {
+const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, title }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const { user, getIdToken } = useAuth();
+  const { user, getToken } = useAuth();
   const router = useRouter();
 
   const handlePurchase = async () => {
@@ -31,7 +30,7 @@ const ProgramPurchase: React.FC<ProgramPurchaseProps> = ({ programId, price, tit
     setError(null);
 
     try {
-      const token = await getIdToken();
+      const token = await getToken();
       if (!token) {
         throw new Error('Failed to get authentication token');
       }

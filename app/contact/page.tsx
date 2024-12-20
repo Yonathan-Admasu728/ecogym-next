@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import ContactContent from './ContactContent';
 import StructuredData from '../components/StructuredData';
+import { SchemaOrg } from '../types';
 
 export const metadata: Metadata = {
   title: 'Contact Us | Ecogym',
@@ -22,8 +23,10 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const SCHEMA_CONTEXT = "https://schema.org" as const;
+
+const structuredData: SchemaOrg = {
+  "@context": SCHEMA_CONTEXT,
   "@type": "ContactPage",
   "name": "Ecogym Contact Page",
   "description": "Contact Ecogym for support, feedback, or inquiries about our fitness and wellness services.",
@@ -38,7 +41,7 @@ const structuredData = {
   }
 };
 
-export default function ContactPage() {
+export default function ContactPage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />
