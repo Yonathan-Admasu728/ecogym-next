@@ -6,11 +6,16 @@ import { getProgram } from '../../../utils/api';
 
 // Initialize Stripe with the latest API version
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
-  apiVersion: '2024-12-18.acacia',
+  apiVersion: '2023-10-16',
   typescript: true,
 });
 
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse<{
+  sessionId: string;
+  url: string | null;
+} | {
+  error: string;
+}>> {
   try {
     // Verify authentication
     const authHeader = request.headers.get('authorization');
@@ -76,11 +81,17 @@ export async function POST(request: NextRequest) {
       sessionId: session.id,
       url: session.url,
     });
-  } catch (error: any) {
+  } catch (error) {
     console.error('Error creating checkout session:', error);
+    if (error instanceof Stripe.errors.StripeError) {
+      return NextResponse.json(
+        { error: error.message },
+        { status: error.statusCode || 500 }
+      );
+    }
     return NextResponse.json(
-      { error: error.message || 'Internal server error' },
-      { status: error.status || 500 }
+      { error: 'Internal server error' },
+      { status: 500 }
     );
   }
 }

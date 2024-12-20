@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import CommunityContent from './CommunityContent';
 import StructuredData from '../components/StructuredData';
+import { SchemaOrg } from '../types/schema';
 
 export const metadata: Metadata = {
   title: 'Community | Ecogym',
@@ -22,8 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const structuredData: SchemaOrg = {
+  "@context": "https://schema.org" as const,
   "@type": "WebPage",
   "name": "Ecogym Community",
   "description": "Join the Ecogym community and connect with fitness enthusiasts.",
@@ -53,7 +54,7 @@ const structuredData = {
   }
 };
 
-export default function CommunityPage() {
+export default function CommunityPage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />

@@ -59,7 +59,7 @@ function ProgramListSkeleton() {
   );
 }
 
-export default async function MindfulnessMeditationPage() {
+export default async function MindfulnessMeditationPage(): Promise<JSX.Element> {
   // Filter programs at build time
   const programs = mockPrograms.filter(p => p.category === 'mindfulness');
 
@@ -140,7 +140,7 @@ export default async function MindfulnessMeditationPage() {
             Start Your Mindfulness Journey Today
           </h2>
           <p className="text-gray-600 mb-6 max-w-2xl mx-auto">
-            Whether you're new to meditation or looking to deepen your practice,
+            Whether you&apos;re new to meditation or looking to deepen your practice,
             our programs cater to all experience levels. Begin your journey to
             inner peace and mental clarity today.
           </p>

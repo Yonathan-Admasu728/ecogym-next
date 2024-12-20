@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import BlogContent from './BlogContent';
 import StructuredData from '../components/StructuredData';
+import { SchemaOrg } from '../types/schema';
 
 export const metadata: Metadata = {
   title: 'Blog | Ecogym',
@@ -22,15 +23,15 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const structuredData: SchemaOrg = {
+  "@context": "https://schema.org" as const,
   "@type": "Blog",
   "name": "Ecogym Blog",
   "description": "Fitness tips, meditation guides, and wellness advice from Ecogym experts.",
   "url": "https://ecogym.space/blog",
 };
 
-export default function BlogPage() {
+export default function BlogPage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />

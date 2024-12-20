@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import CareersContent from './CareersContent';
 import StructuredData from '../components/StructuredData';
+import { SchemaOrg } from '../types/schema';
 
 export const metadata: Metadata = {
   title: 'Careers | Ecogym',
@@ -22,8 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const structuredData: SchemaOrg = {
+  "@context": "https://schema.org" as const,
   "@type": "JobPosting",
   "title": "Join the Ecogym Team",
   "description": "We're always looking for passionate individuals to join our team. Check back for upcoming opportunities.",
@@ -43,7 +44,7 @@ const structuredData = {
   "employmentType": "FULL_TIME"
 };
 
-export default function CareersPage() {
+export default function CareersPage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />

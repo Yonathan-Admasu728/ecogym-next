@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import React, { useState } from 'react';
 import { FaPlay, FaHeart, FaShare, FaBookmark } from 'react-icons/fa';
 
@@ -88,10 +89,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
         {/* Program Header */}
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <div className="relative aspect-video rounded-lg overflow-hidden">
-            <img
+            <Image
               src={program.thumbnail}
               alt={program.title}
               className="w-full h-full object-cover"
+              width={800}
+              height={450}
             />
             <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
               <button
@@ -162,7 +165,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
             <h2 className="text-2xl font-bold mb-4">About this Program</h2>
             <p className="text-lightBlue-100 mb-8">{program.detailed_description || program.description}</p>
 
-            <h2 className="text-2xl font-bold mb-4">What You'll Learn</h2>
+            <h2 className="text-2xl font-bold mb-4">What You&apos;ll Learn</h2>
             {renderLearningOutcomes()}
           </div>
 

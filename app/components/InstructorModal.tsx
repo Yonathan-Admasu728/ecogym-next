@@ -49,7 +49,7 @@ const InstructorModal: React.FC<InstructorModalProps> = ({
                 as="h3"
                 className="text-2xl font-bold leading-6 text-turquoise mb-4"
               >
-                {trainer.user.first_name} {trainer.user.last_name}
+                {trainer.user?.first_name || 'Unknown'} {trainer.user?.last_name || ''}
               </Dialog.Title>
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -58,7 +58,7 @@ const InstructorModal: React.FC<InstructorModalProps> = ({
               >
                 <Image
                   src={trainer.profile_picture || "/placeholder-avatar.jpg"}
-                  alt={`${trainer.user.first_name} ${trainer.user.last_name}`}
+                  alt={`${trainer.user?.first_name || 'Unknown'} ${trainer.user?.last_name || ''}`}
                   width={150}
                   height={150}
                   className="rounded-full mx-auto mb-6 border-4 border-turquoise"
@@ -68,18 +68,8 @@ const InstructorModal: React.FC<InstructorModalProps> = ({
                   <div className="mb-6">
                     <h4 className="text-lg font-semibold text-turquoise mb-2">Specialties</h4>
                     <ul className="list-disc list-inside text-gray-300">
-                      {trainer.specialties.map((specialty, index) => (
+                      {trainer.specialties.map((specialty: string, index: number) => (
                         <li key={index}>{specialty}</li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                {trainer.certifications && trainer.certifications.length > 0 && (
-                  <div className="mb-6">
-                    <h4 className="text-lg font-semibold text-turquoise mb-2">Certifications</h4>
-                    <ul className="list-disc list-inside text-gray-300">
-                      {trainer.certifications.map((certification, index) => (
-                        <li key={index}>{certification}</li>
                       ))}
                     </ul>
                   </div>

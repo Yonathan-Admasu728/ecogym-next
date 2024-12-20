@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import BlogPostContent from './BlogPostContent';
 import StructuredData from '../../components/StructuredData';
+import { SchemaOrg } from '../../types/schema';
 
 export const metadata: Metadata = {
   title: 'Blog Post | Ecogym',
@@ -10,7 +11,7 @@ export const metadata: Metadata = {
 };
 
 // This is a placeholder. In a real application, you'd fetch the blog post data here.
-const getBlogPost = (slug: string) => {
+const getBlogPost = (_slug: string) => {
   return {
     title: "Sample Blog Post",
     content: "This is a sample blog post content.",
@@ -19,11 +20,11 @@ const getBlogPost = (slug: string) => {
   };
 };
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
+export default function BlogPostPage({ params }: { params: { slug: string } }): JSX.Element {
   const post = getBlogPost(params.slug);
 
-  const structuredData = {
-    "@context": "https://schema.org",
+  const structuredData: SchemaOrg = {
+    "@context": "https://schema.org" as const,
     "@type": "BlogPosting",
     "headline": post.title,
     "datePublished": post.date,

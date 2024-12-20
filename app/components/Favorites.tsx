@@ -1,13 +1,15 @@
 // app/components/Favorites.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { useAuth } from '../context/AuthContext';
 import { FaHeart } from 'react-icons/fa';
 
 import { Program } from '../types';
 import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import { toggleFavorite } from '../utils/api';
+import { logger } from '../utils/logger';
 
 interface FavoritesProps {
   programs: Program[];
@@ -17,27 +19,33 @@ const Favorites: React.FC<FavoritesProps> = ({ programs: initialPrograms }) => {
   const [favorites, setFavorites] = useState<Program[]>(initialPrograms);
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
-  const handleToggleFavorite = async (programId: number) => {
+  const { user } = useAuth();
+  const handleToggleFavorite = async (programId: string) => {
     try {
-      await toggleFavorite(programId);
+      await toggleFavorite(Number(programId));
       setFavorites(favorites.filter(program => program.id !== programId));
     } catch (error) {
-      console.error('Error toggling favorite:', error);
+      logger.error('Error toggling favorite', { error });
     }
   };
 
-  const handleExplore = (program: Program) => {
-    setSelectedProgram(program);
-  };
+  const handleExplore = useCallback((programId: string) => {
+    const program = favorites.find(p => p.id === programId);
+    if (program) {
+      setSelectedProgram(program);
+    }
+  }, [favorites]);
 
   const handleBack = () => {
     setSelectedProgram(null);
   };
 
-  const handleEnroll = () => {
-    console.log('Enrolling in program:', selectedProgram?.title);
+  const handleEnroll = useCallback(() => {
+    if (selectedProgram) {
+      logger.info('Enrolling in program', { title: selectedProgram.title });
+    }
     setSelectedProgram(null);
-  };
+  }, [selectedProgram]);
 
   if (selectedProgram) {
     return (
@@ -45,6 +53,8 @@ const Favorites: React.FC<FavoritesProps> = ({ programs: initialPrograms }) => {
         program={selectedProgram}
         onBack={handleBack}
         onEnroll={handleEnroll}
+        isAuthenticated={!!user}
+        isProcessing={false}
       />
     );
   }
@@ -62,10 +72,11 @@ const Favorites: React.FC<FavoritesProps> = ({ programs: initialPrograms }) => {
               key={program.id}
               program={program}
               isFeatured={false}
+              isAuthenticated={!!user}
               onExplore={handleExplore}
-              onToggleFavorite={() => handleToggleFavorite(program.id)}
-              isFavorite={true}
-              isPurchased={program.purchased_by_user}  // Pass isPurchased prop
+              onQuickAddToFavorites={() => handleToggleFavorite(program.id)}
+              onSignIn={() => {}} // No-op since we're already authenticated
+              isPurchased={false}  // Default to false since we don't have this info
             />
           ))}
         </div>

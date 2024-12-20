@@ -5,8 +5,6 @@ import React, { useState, useCallback } from 'react';
 import { toast } from 'react-toastify';
 import { Pagination, Autoplay } from 'swiper/modules';
 import { Swiper, SwiperSlide } from 'swiper/react';
-import type { SwiperOptions } from 'swiper/types';
-
 import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import SignInModal from './SignInModal';
@@ -27,18 +25,11 @@ const STORAGE_KEYS = {
   PROGRAM_ID: 'purchasingProgramId'
 } as const;
 
-const SWIPER_CONFIG: SwiperOptions = {
+const swiperProps = {
   spaceBetween: 30,
-  pagination: { 
-    clickable: true,
-    bulletClass: 'swiper-pagination-bullet !bg-turquoise-400',
-    bulletActiveClass: 'swiper-pagination-bullet-active !bg-turquoise-300'
-  },
   modules: [Pagination, Autoplay],
-  autoplay: {
-    delay: 3000,
-    disableOnInteraction: false,
-  }
+  pagination: true,
+  autoplay: true
 };
 
 export default function ProgramListClient({ programs, title }: ProgramListClientProps): JSX.Element {
@@ -173,7 +164,7 @@ export default function ProgramListClient({ programs, title }: ProgramListClient
         </AnimatePresence>
 
         <div className="md:hidden">
-          <Swiper {...SWIPER_CONFIG}>
+          <Swiper {...swiperProps}>
             {programs.map((program) => (
               <SwiperSlide key={program.id}>
                 <ProgramCard 
