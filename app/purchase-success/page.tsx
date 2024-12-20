@@ -7,6 +7,7 @@ import React, { useEffect, useState, Suspense } from 'react';
 
 import { useAuth } from '../context/AuthContext';
 import { PaymentService, handleApiError } from '../services/PaymentService';
+import { logger } from '../utils/logger';
 
 interface PurchaseDetails {
   program_name: string;
@@ -26,8 +27,7 @@ const PurchaseSuccessPage = () => {
       const sessionId = searchParams.get('session_id');
       const programId = searchParams.get('program');
 
-      console.log('Session ID:', sessionId);
-      console.log('Program ID:', programId);
+      logger.info('Purchase verification initiated', { sessionId, programId });
 
       if (!sessionId && !programId) {
         setError('Invalid session ID or program ID');
@@ -36,30 +36,38 @@ const PurchaseSuccessPage = () => {
       }
 
       if (!user) {
-        console.log('Waiting for user authentication...');
+        logger.info('Waiting for user authentication');
         return;
       }
 
       try {
-        let response;
         if (sessionId) {
-          console.log('Verifying purchase for session:', sessionId);
-          response = await PaymentService.verifyPurchase(sessionId);
+          logger.info('Verifying purchase for session', { sessionId });
+          const verified = await PaymentService.verifyPurchase(sessionId);
+          if (!verified) {
+            throw new Error('Purchase verification failed');
+          }
+          // Get purchase details after verification
+          const purchaseInfo = await PaymentService.getPurchaseDetails(sessionId);
+          setPurchaseDetails({
+            program_name: `Program ${purchaseInfo.programId}`,
+            amount: 0 // Since amount is not available in PurchaseDetails type
+          });
         } else if (programId) {
-          console.log('Checking purchase status for program:', programId);
-          response = await PaymentService.checkPurchaseStatus(Number(programId));
+          logger.info('Checking purchase status for program', { programId });
+          const status = await PaymentService.checkPurchaseStatus(programId);
+          if (!status.isPurchased) {
+            throw new Error('Program not purchased');
+          }
+          setPurchaseDetails({
+            program_name: 'Program', // You might want to fetch the program name using programId
+            amount: 0 // You might want to fetch the actual amount
+          });
         }
-
-        if (!response) {
-          throw new Error('Failed to verify purchase');
-        }
-
-        console.log('Purchase verification result:', response);
-        setPurchaseDetails(response);
       } catch (err) {
-        console.error('Error verifying purchase:', err);
+        logger.error('Error verifying purchase', { error: err });
         setError('Failed to verify purchase. Please contact support.');
-        handleApiError(err);
+        handleApiError(err, 'verify purchase status');
       } finally {
         setIsVerifying(false);
       }

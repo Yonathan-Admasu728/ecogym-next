@@ -23,6 +23,15 @@ export const metadata: Metadata = {
   },
 };
 
+import { fetchProgramsByCategory } from '../utils/api';
+
 export default async function MeditationsPage(): Promise<JSX.Element> {
-  return <ProgramList title="Meditation Programs" category="Meditation" />;
+  const programs = await fetchProgramsByCategory('Meditation');
+  
+  return (
+    <ProgramList 
+      title="Meditation Programs" 
+      programs={programs}
+    />
+  );
 }

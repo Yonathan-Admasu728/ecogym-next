@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import TermsOfServiceContent from './TermsOfServiceContent';
 import StructuredData from '../components/StructuredData';
+import type { SchemaOrg } from '../types/schema';
 
 export const metadata: Metadata = {
   title: 'Terms of Service | Ecogym',
@@ -22,15 +23,15 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const structuredData: SchemaOrg = {
+  "@context": "https://schema.org" as const,
   "@type": "WebPage",
   "name": "Ecogym Terms of Service",
   "description": "Terms of Service for Ecogym, a holistic fitness and meditation platform.",
   "url": "https://ecogym.space/terms-of-service",
 };
 
-export default function TermsOfServicePage() {
+export default function TermsOfServicePage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />

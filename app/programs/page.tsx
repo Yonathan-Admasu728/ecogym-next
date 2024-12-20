@@ -2,6 +2,7 @@
 import { Metadata } from 'next';
 
 import ProgramList from '../components/ProgramList';
+import { fetchPrograms } from '../utils/api';
 
 export const metadata: Metadata = {
   title: 'All Programs | Ecogym',
@@ -22,6 +23,8 @@ export const metadata: Metadata = {
   },
 };
 
-export default function AllProgramsPage() {
-  return <ProgramList title="All Programs" />;
+export default async function AllProgramsPage(): Promise<JSX.Element> {
+  const programs = await fetchPrograms();
+  
+  return <ProgramList title="All Programs" programs={programs} />;
 }

@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 
 import PrivacyPolicyContent from './PrivacyPolicyContent';
 import StructuredData from '../components/StructuredData';
+import type { SchemaOrg } from '../types/schema';
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Ecogym',
@@ -22,15 +23,15 @@ export const metadata: Metadata = {
   },
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
+const structuredData: SchemaOrg = {
+  "@context": "https://schema.org" as const,
   "@type": "WebPage",
   "name": "Ecogym Privacy Policy",
   "description": "Privacy Policy for Ecogym, a holistic fitness and meditation platform.",
   "url": "https://ecogym.space/privacy-policy",
 };
 
-export default function PrivacyPolicyPage() {
+export default function PrivacyPolicyPage(): JSX.Element {
   return (
     <>
       <StructuredData data={structuredData} />
