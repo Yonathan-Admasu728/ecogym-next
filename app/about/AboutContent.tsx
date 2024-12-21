@@ -26,13 +26,16 @@ const AboutContent = () => {
           <section className="mb-20">
             <div className="flex flex-col md:flex-row items-center justify-between">
               <div className="md:w-1/2 mb-8 md:mb-0">
-                <Image
-                  src="/images/about-hero.jpg" // Local image
-                  alt="Ecogym: Holistic Fitness and Meditation Platform"
-                  width={600}
-                  height={400}
-                  className="rounded-lg shadow-2xl"
-                />
+                <div className="relative w-full aspect-[3/2]">
+                  <Image
+                    src="/images/about-hero.jpg"
+                    alt="Ecogym: Holistic Fitness and Meditation Platform"
+                    fill
+                    priority
+                    style={{ objectFit: 'cover' }}
+                    className="rounded-lg shadow-2xl"
+                  />
+                </div>
               </div>
               <div className="md:w-1/2 md:pl-12">
                 <h2 className="text-3xl font-semibold mb-6 text-teal-400">Our Mission</h2>
