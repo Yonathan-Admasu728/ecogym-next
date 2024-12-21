@@ -5,7 +5,9 @@ import { motion } from 'framer-motion';
 import React, { useState } from 'react';
 import { FaEnvelope, FaPhone, FaMapMarkerAlt } from 'react-icons/fa';
 
-const ContactContent = () => {
+import { logger } from '../utils/logger';
+
+const ContactContent = (): JSX.Element => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -23,7 +25,7 @@ const ContactContent = () => {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     // Here you would typically send the form data to your backend
-    console.log('Form submitted:', formData);
+    logger.info('Form submitted:', formData);
     // Reset form after submission
     setFormData({ name: '', email: '', message: '' });
     alert('Thank you for your message. We\'ll get back to you soon!');

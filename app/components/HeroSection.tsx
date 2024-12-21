@@ -11,7 +11,7 @@ interface HeroSectionProps {
   onSearch: (query: string) => void;
 }
 
-export default function HeroSection({ onSearch }: HeroSectionProps) {
+export default function HeroSection({ onSearch }: HeroSectionProps): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoError, setVideoError] = useState(false);
 

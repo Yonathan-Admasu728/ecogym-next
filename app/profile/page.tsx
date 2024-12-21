@@ -7,13 +7,11 @@ import { useState, useEffect } from 'react';
 
 import UserProfile from '../components/UserProfile';
 import { useAuth } from '../context/AuthContext';
-import { User } from '../types';
-
 const ProfilePage: React.FC = () => {
   const { user, loading } = useAuth();
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
+  const [error] = useState<string | null>(null);
 
   useEffect(() => {
     if (loading) return;

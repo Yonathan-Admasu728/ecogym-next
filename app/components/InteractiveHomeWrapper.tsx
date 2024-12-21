@@ -51,7 +51,7 @@ const steps: HowItWorksStep[] = [
 const InteractiveHomeWrapper: React.FC<InteractiveHomeWrapperProps> = ({ 
   featuredPrograms 
 }): JSX.Element => {
-  const handleSearch = (query: string): void => {
+  const handleSearch = (_query: string): void => {
     // TODO: Implement search functionality when needed
   };
 

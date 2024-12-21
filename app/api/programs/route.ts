@@ -7,7 +7,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export const dynamic = 'force-dynamic'; // Opt out of static generation for API routes
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     // Parse query parameters
     const { searchParams } = new URL(request.url);
@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
 }
 
 // Protected route for creating programs
-export async function POST(request: NextRequest) {
+export async function POST(request: NextRequest): Promise<NextResponse> {
   return withAuth(request, async (req, user) => {
     try {
       const body = await req.json();

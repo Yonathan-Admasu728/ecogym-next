@@ -3,6 +3,7 @@ import React, { Suspense } from 'react';
 
 import InteractiveHomeWrapper from './components/InteractiveHomeWrapper';
 import { mockPrograms } from './utils/mockData';
+import { Program } from './types';
 
 export const metadata: Metadata = {
   title: 'EcoGym - Transform Your Mind and Body',
@@ -18,14 +19,14 @@ export const metadata: Metadata = {
 // Enable ISR with revalidation every hour
 export const revalidate = 3600;
 
-async function getFeaturedPrograms() {
+async function getFeaturedPrograms(): Promise<Program[]> {
   // In a real app, this would be a database call or API request
   // For now, we'll filter the mock data
   const featured = mockPrograms.filter(program => program.average_rating && program.average_rating >= 4.5);
   return featured;
 }
 
-export default async function HomePage() {
+export default async function HomePage(): Promise<JSX.Element> {
   const featuredPrograms = await getFeaturedPrograms();
 
   return (

@@ -4,12 +4,12 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 
-import { DashboardSidebar, PurchasedPrograms, Favorites, WatchLater, DashboardFeaturedPrograms, RecommendedPrograms } from '../components';
+import { DashboardSidebar, Favorites, WatchLater, DashboardFeaturedPrograms, RecommendedPrograms } from '../components';
 import { useAuth } from '../context/AuthContext';
 import { usePrograms } from '../context/ProgramContext';
 
 
-const DashboardPage = () => {
+const DashboardPage = (): React.JSX.Element => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
   const { 

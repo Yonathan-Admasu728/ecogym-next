@@ -7,7 +7,7 @@ import { FaDumbbell, FaYinYang, FaHeartbeat, FaBrain } from 'react-icons/fa';
 
 import SEO from '../components/SEO';
 
-const AboutContent = () => {
+const AboutContent = (): JSX.Element => {
   return (
     <>
       <SEO 

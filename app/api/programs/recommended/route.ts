@@ -7,8 +7,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export const dynamic = 'force-dynamic'; // Opt out of static generation for API routes
 
-export async function GET(request: NextRequest) {
-  return withAuth(request, async (req, user) => {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return withAuth(request, async (req, _user) => {
     try {
       // Parse query parameters for filtering recommendations
       const { searchParams } = new URL(req.url);
@@ -91,31 +91,6 @@ export async function GET(request: NextRequest) {
       );
     }
   });
-}
-
-// Helper function to get user's completed programs for better recommendations
-async function getUserCompletedPrograms(token: string): Promise<string[]> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/user/progress`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      return [];
-    }
-
-    const progress = await response.json();
-    return progress.completed_programs || [];
-  } catch (error) {
-    console.error('Error fetching user progress:', error);
-    return [];
-  }
 }
 
 // No POST/PUT/DELETE methods needed for recommended programs as they are generated automatically

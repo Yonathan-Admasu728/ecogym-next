@@ -10,7 +10,7 @@ export const dynamic = 'force-dynamic'; // Opt out of static generation for API 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
+): Promise<NextResponse> {
   try {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',
@@ -68,8 +68,8 @@ export async function GET(
 export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
-  return withAuth(request, async (req, user) => {
+): Promise<NextResponse> {
+  return withAuth(request, async (req, _user) => {
     try {
       const body = await req.json();
 
@@ -84,7 +84,7 @@ export async function PUT(
           },
           body: JSON.stringify({
             ...body,
-            updated_by: user.uid
+            updated_by: _user.uid
           }),
         }
       );
@@ -131,8 +131,8 @@ export async function PUT(
 export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
-  return withAuth(request, async (req, user) => {
+): Promise<NextResponse> {
+  return withAuth(request, async (req, _user) => {
     try {
       // Forward to backend API
       const response = await fetch(

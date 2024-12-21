@@ -1,7 +1,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-const Footer = () => {
+const Footer = (): JSX.Element => {
   const socialLinks = [
     { name: 'Instagram', url: 'https://instagram.com/ecogym', icon: '📸' },
     { name: 'Bluesky', url: 'https://Bluesky.com/ecogym', icon: '🦋' },

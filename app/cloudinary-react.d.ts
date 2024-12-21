@@ -15,11 +15,37 @@ declare module 'cloudinary-react' {
       width?: string | number;
       height?: string | number;
       controls?: boolean;
-      [key: string]: any;
+      [key: string]: string | number | boolean | undefined;
     }
   
     export class Video extends Component<VideoProps> {}
   
-    export class Image extends Component<any> {}
-    export class Transformation extends Component<any> {}
+    export interface ImageProps {
+      publicId: string;
+      width?: string | number;
+      height?: string | number;
+      crop?: string;
+      quality?: string | number;
+      format?: string;
+      secure?: boolean;
+      [key: string]: string | number | boolean | undefined;
+    }
+
+    export interface TransformationProps {
+      width?: string | number;
+      height?: string | number;
+      crop?: string;
+      quality?: string | number;
+      format?: string;
+      effect?: string;
+      angle?: string | number;
+      opacity?: string | number;
+      border?: string;
+      background?: string;
+      radius?: string | number;
+      [key: string]: string | number | undefined;
+    }
+
+    export class Image extends Component<ImageProps> {}
+    export class Transformation extends Component<TransformationProps> {}
   }

@@ -18,7 +18,7 @@ const events = [
   { name: "Nutrition Seminar", date: "Aug 22, 2023", description: "Discover the power of proper nutrition for optimal fitness results." },
 ];
 
-const CommunityContent = () => {
+const CommunityContent = (): JSX.Element => {
   return (
     <div className="bg-gradient-to-b from-gray-900 to-gray-800 text-white min-h-screen">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">

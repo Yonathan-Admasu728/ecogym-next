@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react';
 import SignInModal from '../components/SignInModal';
 import { useAuth } from '../context/AuthContext';
 
-const LoginPage = () => {
+const LoginPage = (): React.JSX.Element | null => {
   const [isModalOpen, setIsModalOpen] = useState(true);
   const { user } = useAuth();
   const router = useRouter();

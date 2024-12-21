@@ -9,7 +9,6 @@ import Carousel from './Carousel';
 import { useAuth } from '../context/AuthContext';
 import { useProgramActions } from '../hooks/useProgramActions';
 import { useRecommendedPrograms } from '../hooks/usePrograms';
-import { Program } from '../types';
 
 const RecommendedPrograms: React.FC = () => {
   const router = useRouter();

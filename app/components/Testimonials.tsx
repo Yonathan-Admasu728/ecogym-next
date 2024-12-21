@@ -5,7 +5,7 @@ import Image from 'next/image';
 import { useState } from 'react';
 import { FaQuoteLeft } from 'react-icons/fa';
 
-const Testimonials = () => {
+const Testimonials = (): JSX.Element => {
   const [imageError, setImageError] = useState<{ [key: string]: boolean }>({});
 
   const container = {

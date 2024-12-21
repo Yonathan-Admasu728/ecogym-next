@@ -37,7 +37,7 @@ const structuredData = {
   ]
 };
 
-export default function AboutPage() {
+export default function AboutPage(): React.JSX.Element {
   return (
     <>
       <Head>
@@ -50,4 +50,3 @@ export default function AboutPage() {
     </>
   );
 }
-

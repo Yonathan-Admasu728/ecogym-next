@@ -2,8 +2,7 @@ import axios, {
   AxiosError, 
   InternalAxiosRequestConfig,
   AxiosResponse,
-  AxiosHeaders,
-  RawAxiosRequestHeaders
+  AxiosHeaders
 } from 'axios';
 
 import { logger } from './logger';

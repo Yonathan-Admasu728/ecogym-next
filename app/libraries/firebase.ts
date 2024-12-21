@@ -95,9 +95,9 @@ const firebaseAuth: { auth: Auth | null } = (() => {
     
     // Set persistence to LOCAL
     setPersistence(auth, browserLocalPersistence)
-      .catch(error => {
+      .catch(_ => {
         logger.error('Failed to set auth persistence', {
-          error: error instanceof Error ? error.message : 'Unknown error',
+          error: 'Unknown error',
         });
       });
 
@@ -172,7 +172,7 @@ export const refreshToken = async (): Promise<string | null> => {
 };
 
 // Token refresh mechanism with exponential backoff
-export const setupTokenRefresh = (onTokenRefresh: (token: string) => void) => {
+export const setupTokenRefresh = (onTokenRefresh: (token: string) => void): (() => void) => {
   if (!auth) {
     logger.debug('Auth not initialized, skipping token refresh setup');
     return () => {};
@@ -194,7 +194,8 @@ export const setupTokenRefresh = (onTokenRefresh: (token: string) => void) => {
       } else {
         handleRefreshError();
       }
-    } catch (error) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_) {
       handleRefreshError();
     }
   };

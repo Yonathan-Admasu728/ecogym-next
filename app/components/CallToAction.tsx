@@ -7,7 +7,7 @@ import { FaArrowRight } from 'react-icons/fa';
 
 import { logger } from '../utils/logger';
 
-const CallToAction = () => {
+const CallToAction = (): JSX.Element => {
   const router = useRouter();
 
   const handleGetStarted = () => {

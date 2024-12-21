@@ -6,7 +6,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export const dynamic = 'force-dynamic'; // Opt out of static generation for API routes
 
-export async function GET(request: NextRequest) {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   try {
     const headers: HeadersInit = {
       'Content-Type': 'application/json',

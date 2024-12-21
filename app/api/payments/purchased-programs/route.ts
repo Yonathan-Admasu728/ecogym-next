@@ -7,8 +7,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export const dynamic = 'force-dynamic'; // Opt out of static generation for API routes
 
-export async function GET(request: NextRequest) {
-  return withAuth(request, async (req, user) => {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return withAuth(request, async (req, _user) => {
     try {
       // Fetch user's purchased programs from backend
       const response = await fetch(
@@ -75,31 +75,6 @@ export async function GET(request: NextRequest) {
       );
     }
   });
-}
-
-// Helper function to check subscription status
-async function checkSubscriptionStatus(token: string): Promise<boolean> {
-  try {
-    const response = await fetch(
-      `${API_BASE_URL}/payments/subscription/status`,
-      {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json',
-        },
-      }
-    );
-
-    if (!response.ok) {
-      return false;
-    }
-
-    const { active } = await response.json();
-    return active;
-  } catch (error) {
-    console.error('Error checking subscription status:', error);
-    return false;
-  }
 }
 
 // No POST/PUT/DELETE methods needed for purchased programs as they are managed through the checkout process

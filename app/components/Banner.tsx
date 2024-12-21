@@ -8,7 +8,7 @@ import { useInView } from 'react-intersection-observer';
 
 import { logger } from '../utils/logger';
 
-const Banner = () => {
+const Banner = (): JSX.Element => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { ref, inView } = useInView({ threshold: 0 });
   const [currentTextIndex, setCurrentTextIndex] = useState(0);

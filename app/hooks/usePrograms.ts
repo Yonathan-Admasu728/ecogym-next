@@ -1,4 +1,4 @@
-import useSWR from 'swr';
+import useSWR, { KeyedMutator } from 'swr';
 
 import {
   getFeaturedPrograms,
@@ -75,7 +75,34 @@ const createPlaceholderProgram = (id: string): Program => ({
   }
 });
 
-export function useFeaturedPrograms(options: UseProgramsOptions = defaultOptions) {
+interface ProgramsHookResult {
+  programs: Program[];
+  isLoading: boolean;
+  isError: Error | undefined;
+  mutate: KeyedMutator<Program[]>;
+}
+
+interface ProgramDetailsHookResult {
+  program: Program | null;
+  isLoading: boolean;
+  isError: Error | undefined;
+  mutate: KeyedMutator<Program | null>;
+}
+
+interface UserProgramsHookResult {
+  favorites: Program[];
+  watchLater: Program[];
+  isLoading: boolean;
+  isError: Error | undefined;
+  addToFavorites: (programId: string | number) => Promise<void>;
+  removeFromFavorites: (programId: string | number) => Promise<void>;
+  addToWatchLater: (programId: string | number) => Promise<void>;
+  removeFromWatchLater: (programId: string | number) => Promise<void>;
+  mutateFavorites: KeyedMutator<Program[]>;
+  mutateWatchLater: KeyedMutator<Program[]>;
+}
+
+export function useFeaturedPrograms(options: UseProgramsOptions = defaultOptions): ProgramsHookResult {
   const { data, error, mutate } = useSWR<Program[]>(
     'featured-programs',
     getFeaturedPrograms,
@@ -95,7 +122,7 @@ export function useFeaturedPrograms(options: UseProgramsOptions = defaultOptions
   };
 }
 
-export function useRecommendedPrograms(options: UseProgramsOptions = defaultOptions) {
+export function useRecommendedPrograms(options: UseProgramsOptions = defaultOptions): ProgramsHookResult {
   const { data, error, mutate } = useSWR<Program[], Error>(
     'recommended-programs',
     getRecommendedPrograms,
@@ -116,7 +143,7 @@ export function useRecommendedPrograms(options: UseProgramsOptions = defaultOpti
   };
 }
 
-export function usePurchasedPrograms(options: UseProgramsOptions = defaultOptions) {
+export function usePurchasedPrograms(options: UseProgramsOptions = defaultOptions): ProgramsHookResult {
   const { data, error, mutate } = useSWR<Program[]>(
     'purchased-programs',
     getPurchasedPrograms,
@@ -135,7 +162,7 @@ export function usePurchasedPrograms(options: UseProgramsOptions = defaultOption
   };
 }
 
-export function useProgramDetails(programId: string | number, options: UseProgramsOptions = defaultOptions) {
+export function useProgramDetails(programId: string | number, options: UseProgramsOptions = defaultOptions): ProgramDetailsHookResult {
   const stringId = programId.toString();
   
   const { data, error, mutate } = useSWR<Program | null>(
@@ -150,14 +177,14 @@ export function useProgramDetails(programId: string | number, options: UseProgra
   );
 
   return {
-    program: data,
+    program: data ?? null,
     isLoading: !error && !data,
     isError: error,
     mutate,
   };
 }
 
-export function useUserPrograms(options: UseProgramsOptions = defaultOptions) {
+export function useUserPrograms(options: UseProgramsOptions = defaultOptions): UserProgramsHookResult {
   const { data: favorites, error: favoritesError, mutate: mutateFavorites } = useSWR<Program[]>(
     'user-favorites',
     getFavorites,

@@ -6,8 +6,8 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/a
 
 export const dynamic = 'force-dynamic'; // Opt out of static generation for API routes
 
-export async function GET(request: NextRequest) {
-  return withAuth(request, async (req, user) => {
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  return withAuth(request, async (req, _user) => {
     try {
       // Get program ID from query params
       const { searchParams } = new URL(req.url);
@@ -86,8 +86,8 @@ export async function GET(request: NextRequest) {
 }
 
 // POST endpoint for checking multiple programs at once
-export async function POST(request: NextRequest) {
-  return withAuth(request, async (req, user) => {
+export async function POST(request: NextRequest): Promise<NextResponse> {
+  return withAuth(request, async (req, _user) => {
     try {
       const body = await req.json();
       const { programIds } = body;

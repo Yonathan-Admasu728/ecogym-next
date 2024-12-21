@@ -71,7 +71,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 }
 
 // Generate static paths for common programs
-export async function generateStaticParams() {
+export async function generateStaticParams(): Promise<Array<{ id: string }>> {
   // Pre-render the most popular programs at build time
   const popularProgramIds = mockPrograms
     .filter(program => program.review_count && program.review_count > 100)
@@ -86,7 +86,7 @@ export async function generateStaticParams() {
 export const revalidate = 3600;
 
 // Loading component
-function ProgramDetailSkeleton() {
+function ProgramDetailSkeleton(): JSX.Element {
   return (
     <div className="animate-pulse">
       <div className="h-64 bg-gray-300 rounded-lg mb-4" />
@@ -98,25 +98,7 @@ function ProgramDetailSkeleton() {
   );
 }
 
-// Error component
-function ProgramError({ error }: { error: Error }) {
-  return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md text-center">
-        <h1 className="text-2xl font-bold text-red-600 mb-4">Error Loading Program</h1>
-        <p className="text-gray-600 mb-4">{error.message}</p>
-        <button 
-          onClick={() => window.location.reload()}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition-colors"
-        >
-          Try Again
-        </button>
-      </div>
-    </div>
-  );
-}
-
-export default async function ProgramPage({ params }: Props) {
+export default async function ProgramPage({ params }: Props): Promise<JSX.Element> {
   const program = mockPrograms.find(p => 
     p.id.toLowerCase() === params.id.toLowerCase() || 
     p.category.toLowerCase() === params.id.toLowerCase()

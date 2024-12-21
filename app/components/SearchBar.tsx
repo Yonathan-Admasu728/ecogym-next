@@ -18,26 +18,30 @@ const SearchBar: React.FC<SearchBarProps> = ({ onSearch }): JSX.Element => {
   const [isFocused, setIsFocused] = useState<boolean>(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Debounce the search to avoid too many API calls
-  const debouncedSearch = useCallback(
-    debounce((searchQuery: string): void => {
-      logger.info('Search query executed', { query: searchQuery });
-      onSearch(searchQuery);
-    }, DEBOUNCE_DELAY),
-    [onSearch]
-  );
+  // Create debounced search function
+  const debouncedSearch = useCallback((searchQuery: string): void => {
+    logger.info('Search query executed', { query: searchQuery });
+    onSearch(searchQuery);
+  }, [onSearch]);
+
+  // Create memoized debounced function
+  const debouncedSearchHandler = useRef(
+    debounce((searchQuery: string) => {
+      debouncedSearch(searchQuery);
+    }, DEBOUNCE_DELAY)
+  ).current;
 
   // Cleanup debounced function on unmount
   useEffect(() => {
     return () => {
-      debouncedSearch.cancel();
+      debouncedSearchHandler.cancel();
     };
-  }, [debouncedSearch]);
+  }, [debouncedSearchHandler]);
 
   const handleQueryChange = (e: React.ChangeEvent<HTMLInputElement>): void => {
     const newQuery = e.target.value;
     setQuery(newQuery);
-    void debouncedSearch(newQuery);
+    void debouncedSearchHandler(newQuery);
   };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>): void => {

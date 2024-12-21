@@ -1,7 +1,6 @@
 'use client';
 
-import type { Auth, UserCredential } from 'firebase/auth';
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 
 import {
   auth,
@@ -12,7 +11,6 @@ import {
   signOut as firebaseSignOut,
   onAuthStateChanged,
   type User,
-  getIdToken,
   setupTokenRefresh
 } from '../libraries/firebase';
 import axiosInstance from '../utils/axiosConfig';
@@ -63,6 +61,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
   const [loading, setLoading] = useState(true);
   const isDevelopment = process.env.NODE_ENV === 'development';
 
+  const signOut = useCallback(async (): Promise<void> => {
+    try {
+      if (!auth) {
+        if (isDevelopment) {
+          await mockAuthFunctions.signOut();
+          setUser(null);
+          return;
+        }
+        throw new Error('Auth not initialized');
+      }
+
+      await firebaseSignOut(auth);
+      setUser(null);
+      delete axiosInstance.defaults.headers.common['Authorization'];
+      // Clear any auth-related cache or state
+      localStorage.removeItem('authToken');
+    } catch (error) {
+      logger.error('Sign out failed', error);
+      throw error;
+    }
+  }, [isDevelopment]);
+
   useEffect(() => {
     let unsubscribe = (): void => {};
 
@@ -111,7 +131,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       setLoading(false);
       return unsubscribe;
     }
-  }, []);
+  }, [signOut]);
 
   const signInWithEmail = async (email: string, password: string): Promise<void> => {
     try {
@@ -182,28 +202,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       }
     } catch (error) {
       logger.error('Google sign in failed', error);
-      throw error;
-    }
-  };
-
-  const signOut = async (): Promise<void> => {
-    try {
-      if (!auth) {
-        if (isDevelopment) {
-          await mockAuthFunctions.signOut();
-          setUser(null);
-          return;
-        }
-        throw new Error('Auth not initialized');
-      }
-
-      await firebaseSignOut(auth);
-      setUser(null);
-      delete axiosInstance.defaults.headers.common['Authorization'];
-      // Clear any auth-related cache or state
-      localStorage.removeItem('authToken');
-    } catch (error) {
-      logger.error('Sign out failed', error);
       throw error;
     }
   };
