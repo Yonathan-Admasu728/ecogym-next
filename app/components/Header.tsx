@@ -4,7 +4,6 @@ import Link from 'next/link';
 import React, { useState } from 'react';
 import { FaBars, FaTimes } from 'react-icons/fa';
 
-import PlaceholderAvatar from '../../public/images/placeholder-avatar.svg';
 import { useAuth } from '../context/AuthContext';
 
 const Header: React.FC = () => {
@@ -59,7 +58,14 @@ const Header: React.FC = () => {
                           style={{ objectFit: 'cover' }}
                         />
                       ) : (
-                        <PlaceholderAvatar className="rounded-full w-full h-full" />
+                        <Image
+                          src="/images/placeholder-avatar.svg"
+                          alt="Default Avatar"
+                          fill
+                          sizes="32px"
+                          className="rounded-full"
+                          style={{ objectFit: 'cover' }}
+                        />
                       )}
                     </div>
                     <span className="text-white hover:text-turquoise-400 transition duration-300">
@@ -107,7 +113,14 @@ const Header: React.FC = () => {
                           style={{ objectFit: 'cover' }}
                         />
                       ) : (
-                        <PlaceholderAvatar className="rounded-full w-full h-full" />
+                        <Image
+                          src="/images/placeholder-avatar.svg"
+                          alt="Default Avatar"
+                          fill
+                          sizes="32px"
+                          className="rounded-full"
+                          style={{ objectFit: 'cover' }}
+                        />
                       )}
                     </div>
                     <span className="text-white hover:text-turquoise-400 transition duration-300">

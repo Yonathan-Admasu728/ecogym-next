@@ -1,13 +1,22 @@
 import './globals.css'
-import { Inter } from 'next/font/google'
+import { Inter, Poppins } from 'next/font/google'
 import Image from 'next/image'
 
 import Footer from './components/Footer'
-import Header from './components/Header'
+import HeaderWrapper from './components/HeaderWrapper'
 import { metadata } from './metadata'
 import { Providers } from './providers'
 
-const inter = Inter({ subsets: ['latin'] })
+const inter = Inter({ 
+  subsets: ['latin'],
+  variable: '--font-inter'
+})
+
+const poppins = Poppins({ 
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins'
+})
 
 export { metadata }
 
@@ -18,7 +27,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className={inter.className}>
+      <body className={`${inter.variable} ${poppins.variable} font-body`}>
         <Providers>
           <div className="relative min-h-screen">
             <div className="fixed inset-0 -z-10">
@@ -31,7 +40,7 @@ export default function RootLayout({
                 className="opacity-5"
               />
             </div>
-            <Header />
+            <HeaderWrapper />
             <main className="pb-16">
               {children}
             </main>

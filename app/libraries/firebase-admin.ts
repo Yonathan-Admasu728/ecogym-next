@@ -36,10 +36,32 @@ function validateConfig(): FirebaseAdminConfig {
     );
   }
 
+  // Handle private key formatting
+  let formattedPrivateKey = privateKey;
+  
+  // Remove quotes if present
+  if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
+    formattedPrivateKey = formattedPrivateKey.slice(1, -1);
+  }
+  
+  // Replace literal \n with newlines if needed
+  if (formattedPrivateKey.includes('\\n')) {
+    formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n');
+  }
+  
+  // Ensure the key has the correct format
+  if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----') || 
+      !formattedPrivateKey.includes('-----END PRIVATE KEY-----')) {
+    throw new FirebaseAdminError(
+      'Invalid private key format. Must be a valid PEM formatted private key.',
+      'INVALID_PRIVATE_KEY'
+    );
+  }
+
   return {
     projectId,
     clientEmail,
-    privateKey: privateKey.replace(/\\n/g, '\n'),
+    privateKey: formattedPrivateKey,
     ...(databaseURL && { databaseURL }),
   };
 }
