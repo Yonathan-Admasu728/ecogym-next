@@ -1,6 +1,7 @@
 // app/workouts/page.tsx
 
 import { Metadata } from 'next';
+export const dynamic = 'force-dynamic';
 
 import ProgramList from '../components/ProgramList';
 import { fetchProgramsByCategory } from '../utils/api';

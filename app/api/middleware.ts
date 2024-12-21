@@ -1,8 +1,6 @@
-import { auth } from 'firebase-admin';
-import { initializeApp, getApps, cert, ServiceAccount } from 'firebase-admin/app';
 import { NextRequest, NextResponse } from 'next/server';
-
 import { logger } from '../utils/logger';
+import { auth as firebaseAuth } from '../libraries/firebase-admin';
 
 interface AuthUser {
   uid: string;
@@ -25,38 +23,6 @@ class AuthError extends Error {
   }
 }
 
-// Initialize Firebase Admin if not already initialized
-if (!getApps().length) {
-  try {
-    const serviceAccountStr = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-    if (!serviceAccountStr) {
-      throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY environment variable is not set');
-    }
-
-    const serviceAccount = JSON.parse(serviceAccountStr) as ServiceAccount;
-
-    // Validate required service account fields
-    if (!serviceAccount.projectId || !serviceAccount.privateKey || !serviceAccount.clientEmail) {
-      const missingFields = [
-        !serviceAccount.projectId && 'projectId',
-        !serviceAccount.privateKey && 'privateKey',
-        !serviceAccount.clientEmail && 'clientEmail',
-      ].filter(Boolean);
-
-      throw new Error(`Missing required service account fields: ${missingFields.join(', ')}`);
-    }
-
-    initializeApp({
-      credential: cert(serviceAccount)
-    });
-
-    logger.info('Firebase Admin initialized successfully');
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('Failed to initialize Firebase Admin', { error: errorMessage });
-    throw new Error('Failed to initialize Firebase Admin. Check server logs for details.');
-  }
-}
 
 export async function authenticateRequest(request: NextRequest): Promise<AuthUser | NextResponse> {
   try {
@@ -68,7 +34,7 @@ export async function authenticateRequest(request: NextRequest): Promise<AuthUse
     const token = authHeader.split('Bearer ')[1];
     
     try {
-      const decodedToken = await auth().verifyIdToken(token);
+      const decodedToken = await firebaseAuth.verifyIdToken(token);
       
       // Log successful authentication
       logger.info('User authenticated successfully', {

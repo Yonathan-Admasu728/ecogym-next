@@ -3,10 +3,10 @@ import * as admin from 'firebase-admin';
 import { logger } from '../utils/logger';
 
 interface FirebaseAdminConfig {
-  projectId: string | undefined;
-  clientEmail: string | undefined;
-  privateKey: string | undefined;
-  databaseURL: string | undefined;
+  projectId: string;
+  clientEmail: string;
+  privateKey: string;
+  databaseURL?: string;
 }
 
 class FirebaseAdminError extends Error {
@@ -17,30 +17,31 @@ class FirebaseAdminError extends Error {
 }
 
 function validateConfig(): FirebaseAdminConfig {
-  const config = {
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    clientEmail: process.env.FIREBASE_CLIENT_EMAIL,
-    privateKey: process.env.FIREBASE_PRIVATE_KEY,
-    databaseURL: process.env.FIREBASE_DATABASE_URL,
-  };
+  const projectId = process.env.FIREBASE_PROJECT_ID;
+  const clientEmail = process.env.FIREBASE_CLIENT_EMAIL;
+  const privateKey = process.env.FIREBASE_PRIVATE_KEY;
+  const databaseURL = process.env.FIREBASE_DATABASE_URL;
 
-  const missingVars = Object.entries(config)
-    .filter(([_, value]) => !value)
-    .map(([key]) => key);
+  // Check required credentials
+  if (!projectId || !clientEmail || !privateKey) {
+    const missingVars = [
+      !projectId && 'FIREBASE_PROJECT_ID',
+      !clientEmail && 'FIREBASE_CLIENT_EMAIL',
+      !privateKey && 'FIREBASE_PRIVATE_KEY',
+    ].filter(Boolean);
 
-  if (missingVars.length > 0) {
     throw new FirebaseAdminError(
       `Missing required Firebase configuration: ${missingVars.join(', ')}`,
       'MISSING_CONFIG'
     );
   }
 
-  // Handle private key line breaks
-  if (config.privateKey) {
-    config.privateKey = config.privateKey.replace(/\\n/g, '\n');
-  }
-
-  return config;
+  return {
+    projectId,
+    clientEmail,
+    privateKey: privateKey.replace(/\\n/g, '\n'),
+    ...(databaseURL && { databaseURL }),
+  };
 }
 
 // Initialize Firebase Admin
@@ -59,24 +60,20 @@ if (!admin.apps.length) {
 
     logger.info('Firebase Admin initialized successfully', {
       projectId: config.projectId,
-      clientEmail: config.clientEmail?.split('@')[0] + '@...', // Log only first part of email
+      clientEmail: config.clientEmail.split('@')[0] + '@...', // Log only first part of email
       databaseURL: config.databaseURL,
     });
   } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    const errorCode = error instanceof FirebaseAdminError ? error.code : 'INIT_ERROR';
-
+    if (error instanceof FirebaseAdminError) {
+      // Re-throw Firebase admin configuration errors
+      throw error;
+    }
+    // Handle other initialization errors
     logger.error('Firebase Admin initialization failed', {
-      error: errorMessage,
-      code: errorCode,
+      error: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : undefined,
     });
-
-    // Re-throw to prevent app from starting with invalid Firebase config
-    throw new FirebaseAdminError(
-      'Failed to initialize Firebase Admin. Check server logs for details.',
-      errorCode
-    );
+    throw new FirebaseAdminError('Failed to initialize Firebase Admin', 'INIT_ERROR');
   }
 }
 
@@ -87,14 +84,29 @@ export const db = admin.firestore();
 // Export admin instance for advanced use cases
 export const adminInstance = admin;
 
+interface TokenVerificationResult {
+  uid: string | null;
+  email: string | null;
+  role: string | null;
+  isValid: boolean;
+  error?: string;
+}
+
+interface UserRecord {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+}
+
 // Utility functions
-export async function verifyIdToken(token: string) {
+export async function verifyIdToken(token: string): Promise<TokenVerificationResult> {
   try {
     const decodedToken = await auth.verifyIdToken(token);
     return {
       uid: decodedToken.uid,
-      email: decodedToken.email,
-      role: decodedToken.role,
+      email: decodedToken.email || null,
+      role: decodedToken.role || null,
       isValid: true,
     };
   } catch (error) {
@@ -110,14 +122,14 @@ export async function verifyIdToken(token: string) {
   }
 }
 
-export async function getUserByEmail(email: string) {
+export async function getUserByEmail(email: string): Promise<UserRecord> {
   try {
     const userRecord = await auth.getUserByEmail(email);
     return {
       uid: userRecord.uid,
-      email: userRecord.email,
-      displayName: userRecord.displayName,
-      photoURL: userRecord.photoURL,
+      email: userRecord.email || null,
+      displayName: userRecord.displayName || null,
+      photoURL: userRecord.photoURL || null,
     };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
@@ -129,7 +141,7 @@ export async function getUserByEmail(email: string) {
   }
 }
 
-export async function createCustomToken(uid: string) {
+export async function createCustomToken(uid: string): Promise<string> {
   try {
     const token = await auth.createCustomToken(uid);
     return token;

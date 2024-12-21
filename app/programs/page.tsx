@@ -1,8 +1,9 @@
 // app/programs/page.tsx
 import { Metadata } from 'next';
-
 import ProgramList from '../components/ProgramList';
 import { fetchPrograms } from '../utils/api';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'All Programs | Ecogym',

@@ -1,8 +1,10 @@
 // app/meditations/page.tsx
 
 import { Metadata } from 'next';
-
 import ProgramList from '../components/ProgramList';
+import { fetchProgramsByCategory } from '../utils/api';
+
+export const dynamic = 'force-dynamic';
 
 export const metadata: Metadata = {
   title: 'Meditation Programs | Ecogym',
@@ -22,8 +24,6 @@ export const metadata: Metadata = {
     siteName: 'Ecogym',
   },
 };
-
-import { fetchProgramsByCategory } from '../utils/api';
 
 export default async function MeditationsPage(): Promise<JSX.Element> {
   const programs = await fetchProgramsByCategory('Meditation');
