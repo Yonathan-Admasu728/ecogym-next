@@ -57,7 +57,7 @@ const Testimonials = (): JSX.Element => {
         </motion.div>
 
         <motion.div 
-          className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          className="flex overflow-x-auto pb-4 md:pb-0 md:grid md:grid-cols-3 gap-4 md:gap-8 snap-x snap-mandatory md:snap-none"
           variants={container}
           initial="hidden"
           whileInView="show"
@@ -67,7 +67,7 @@ const Testimonials = (): JSX.Element => {
             <motion.div
               key={index}
               variants={item}
-              className="bg-gradient-to-b from-darkBlue-800/50 to-darkBlue-900/50 backdrop-blur-sm p-8 rounded-2xl border border-turquoise-400/20 shadow-xl hover:shadow-2xl transition-all duration-300 group"
+              className="relative flex-shrink-0 w-[280px] md:w-auto snap-center bg-gradient-to-b from-darkBlue-800/50 to-darkBlue-900/50 backdrop-blur-sm p-8 rounded-2xl border border-turquoise-400/20 shadow-xl hover:shadow-2xl transition-all duration-300 group"
               whileHover={{ scale: 1.02 }}
             >
               <FaQuoteLeft className="text-3xl text-turquoise-400 mb-6 opacity-50 group-hover:opacity-100 transition-opacity duration-300" />
