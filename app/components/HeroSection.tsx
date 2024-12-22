@@ -60,7 +60,7 @@ export default function HeroSection({ onSearch }: HeroSectionProps): JSX.Element
             <source src="/videos/background.mp4" type="video/mp4" />
           </video>
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-darkBlue-900/35 via-darkBlue-900/25 to-darkBlue-800/40 backdrop-blur-[2px]" />
+        <div className="absolute inset-0 bg-gradient-to-b from-darkBlue-900/25 via-darkBlue-900/15 to-darkBlue-800/20 backdrop-blur-[1px]" />
       </div>
 
       <motion.div 
