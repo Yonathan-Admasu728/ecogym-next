@@ -51,6 +51,25 @@
   .bg-gradient {
     background: linear-gradient(to bottom, rgb(var(--background-start-rgb)), rgb(var(--background-end-rgb)));
   }
+
+  @keyframes gradientShift {
+    from {
+      background-position: 0% 50%;
+    }
+
+    50% {
+      background-position: 100% 50%;
+    }
+
+    to {
+      background-position: 0% 50%;
+    }
+  }
+
+  .animate-gradient {
+    animation: gradientShift 15s ease infinite;
+    background-size: 200% 200%;
+  }
 }
 
 /* Custom scrollbar styles */

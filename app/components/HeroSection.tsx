@@ -14,14 +14,54 @@ interface HeroSectionProps {
 export default function HeroSection({ onSearch }: HeroSectionProps): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [videoError, setVideoError] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const retryCount = useRef(0);
 
-  const handleVideoError = () => {
-    logger.error('Failed to load hero video');
-    setVideoError(true);
+  const handleVideoError = (e: React.SyntheticEvent<HTMLVideoElement, Event>) => {
+    const target = e.target as HTMLVideoElement;
+    const mediaError = target.error;
+
+    // Only log actual errors, not loading state changes
+    if (mediaError) {
+      logger.error('Video error details:', {
+        error: mediaError.message,
+        code: mediaError.code,
+        networkState: target.networkState,
+        readyState: target.readyState
+      });
+
+      // Only retry on network errors (code 2) or decode errors (code 3)
+      if ((mediaError.code === 2 || mediaError.code === 3) && retryCount.current < 3) {
+        retryCount.current += 1;
+        logger.info('Retrying video load', { attempt: retryCount.current });
+        setTimeout(() => {
+          if (videoRef.current) {
+            videoRef.current.load();
+          }
+        }, 1000);
+        return;
+      }
+
+      setVideoError(true);
+    }
   };
 
   const handleVideoPlay = () => {
+    setIsLoading(false);
+    retryCount.current = 0; // Reset retry count on successful play
     logger.info('Hero video started playing');
+  };
+
+  const handleLoadStart = () => {
+    if (!videoRef.current?.currentTime) {
+      setIsLoading(true);
+      logger.info('Video load started');
+    }
+  };
+
+  const handleCanPlay = () => {
+    setIsLoading(false);
+    logger.info('Video can play');
   };
 
   const container = {
@@ -39,6 +79,8 @@ export default function HeroSection({ onSearch }: HeroSectionProps): JSX.Element
     show: { opacity: 1, y: 0 }
   };
 
+  const videoUrl = "https://res.cloudinary.com/dctjqcupv/video/upload/background2_ucpljz.mp4";
+
   return (
     <section 
       className="relative min-h-screen flex items-center justify-center overflow-hidden bg-gradient-to-b from-darkBlue-900 to-darkBlue-800"
@@ -46,7 +88,11 @@ export default function HeroSection({ onSearch }: HeroSectionProps): JSX.Element
     >
      <div className="absolute inset-0 z-0">
         {!videoError && (
-          <video
+          <>
+            {isLoading && (
+              <div className="absolute inset-0 bg-darkBlue-900 animate-pulse" />
+            )}
+            <video
             ref={videoRef}
             autoPlay
             loop
@@ -54,13 +100,46 @@ export default function HeroSection({ onSearch }: HeroSectionProps): JSX.Element
             playsInline
             onError={handleVideoError}
             onPlay={handleVideoPlay}
-            className="w-full h-full object-cover opacity-40"
+            onLoadStart={handleLoadStart}
+            onCanPlay={handleCanPlay}
+            className={`
+              w-full h-full object-cover
+              transition-opacity duration-1000
+              ${isLoading ? 'opacity-0' : 'opacity-55'}
+              filter brightness-115 saturate-[1.15] contrast-[1.02]
+            `}
+            preload="auto"
             aria-hidden="true"
           >
-            <source src="/videos/background.mp4" type="video/mp4" />
-          </video>
+            <source src={videoUrl} type="video/mp4" />
+            </video>
+          </>
         )}
-        <div className="absolute inset-0 bg-gradient-to-b from-darkBlue-900/25 via-darkBlue-900/15 to-darkBlue-800/20 backdrop-blur-[1px]" />
+        <div 
+          className="absolute inset-0 bg-gradient-to-br from-purple-800/40 via-indigo-900/35 to-turquoise-900/30 backdrop-blur-[2px]"
+          style={{
+            background: `
+              linear-gradient(135deg, 
+                rgba(107, 33, 168, 0.4), 
+                rgba(67, 56, 202, 0.35),
+                rgba(15, 118, 110, 0.3)
+              ),
+              radial-gradient(
+                circle at top right,
+                rgba(45, 212, 191, 0.15),
+                transparent 60%
+              ),
+              radial-gradient(
+                circle at bottom left,
+                rgba(139, 92, 246, 0.1),
+                transparent 50%
+              )
+            `,
+            mixBlendMode: 'soft-light',
+            animation: 'gradientShift 15s ease infinite',
+            backdropFilter: 'blur(2px) brightness(1.05)'
+          }}
+        />
       </div>
 
       <motion.div 

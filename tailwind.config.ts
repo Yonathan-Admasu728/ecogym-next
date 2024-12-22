@@ -9,6 +9,15 @@ const config: Config = {
       fontSize: {
         'xxs': '.625rem',
       },
+      keyframes: {
+        gradientShift: {
+          '0%, 100%': { backgroundPosition: '0% 50%' },
+          '50%': { backgroundPosition: '100% 50%' },
+        },
+      },
+      animation: {
+        gradient: 'gradientShift 15s ease infinite',
+      },
       fontFamily: {
         'heading': ['var(--font-poppins)', 'sans-serif'],
         'body': ['var(--font-inter)', 'sans-serif']
