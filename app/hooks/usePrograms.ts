@@ -2,7 +2,6 @@ import useSWR, { KeyedMutator } from 'swr';
 
 import {
   getFeaturedPrograms,
-  getRecommendedPrograms,
   getPurchasedPrograms,
   getProgramDetails,
   getFavorites,
@@ -116,27 +115,6 @@ export function useFeaturedPrograms(options: UseProgramsOptions = defaultOptions
 
   return {
     programs: data || [],
-    isLoading: !error && !data,
-    isError: error,
-    mutate,
-  };
-}
-
-export function useRecommendedPrograms(options: UseProgramsOptions = defaultOptions): ProgramsHookResult {
-  const { data, error, mutate } = useSWR<Program[], Error>(
-    'recommended-programs',
-    getRecommendedPrograms,
-    {
-      revalidateOnFocus: options.revalidateOnFocus,
-      revalidateOnReconnect: options.revalidateOnReconnect,
-      refreshInterval: options.refreshInterval,
-      dedupingInterval: 60000, // 1 minute deduping for recommended programs,
-      fallbackData: [] // Provide a default value to avoid null/undefined
-    }
-  );
-
-  return {
-    programs: data ?? [], // Use nullish coalescing instead of logical OR
     isLoading: !error && !data,
     isError: error,
     mutate,

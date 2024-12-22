@@ -68,13 +68,15 @@ const CallToAction = (): JSX.Element => {
               className={`
                 group
                 inline-flex items-center justify-center
-                bg-gradient-to-r from-turquoise-500 to-turquoise-400
-                text-darkBlue-900 font-bold
+                bg-gradient-to-r from-teal-400 via-cyan-300 to-sky-400
+                text-white font-bold
                 px-8 py-4 rounded-xl
                 transition-all duration-300
-                transform hover:-translate-y-1
-                shadow-lg hover:shadow-xl
-                focus:outline-none focus:ring-2 focus:ring-turquoise-400 focus:ring-offset-2 focus:ring-offset-darkBlue-900
+                hover-lift hover-scale
+                shadow-lg hover:shadow-xl hover:shadow-teal-500/10
+                focus:outline-none focus:ring-2 focus:ring-teal-300/50 focus:ring-offset-2 focus:ring-offset-darkBlue-900
+                border border-teal-200/20
+                backdrop-blur-sm
               `}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}

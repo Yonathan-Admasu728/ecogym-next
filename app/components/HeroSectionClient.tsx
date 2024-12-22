@@ -1,17 +1,12 @@
 'use client';
 
 import React from 'react';
+import CategoryIcons from './CategoryIcons';
 
-import SearchBar from './SearchBar';
-
-interface HeroSectionClientProps {
-  onSearch: (query: string) => void;
-}
-
-const HeroSectionClient: React.FC<HeroSectionClientProps> = ({ onSearch }) => {
+const HeroSectionClient = (): JSX.Element => {
   return (
     <div className="mb-10">
-      <SearchBar onSearch={onSearch} />
+      <CategoryIcons />
     </div>
   );
 };

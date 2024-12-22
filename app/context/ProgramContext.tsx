@@ -1,16 +1,14 @@
 'use client';
 
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 
-import { useAuth } from '../context/AuthContext';
-import { Program } from '../types';
+import { useAuth } from './AuthContext';
+import { Program, Session } from '../types';
+import { UserPrograms } from '../types/program';
 import { 
   fetchPrograms as apiFetchPrograms, 
-  fetchFeaturedPrograms as apiFetchFeaturedPrograms, 
-  fetchUserPrograms as apiFetchUserPrograms, 
-  toggleFavorite, 
-  toggleWatchLater,
-  UserPrograms
+  fetchFeaturedPrograms as apiFetchFeaturedPrograms,
+  fetchUserPrograms as apiFetchUserPrograms,
 } from '../utils/api';
 import { eventBus } from '../utils/eventBus';
 import { logger } from '../utils/logger';
@@ -18,19 +16,18 @@ import { logger } from '../utils/logger';
 interface ProgramContextType {
   allPrograms: Program[];
   featuredPrograms: Program[];
-  recommendedPrograms: Program[];
   userPrograms: UserPrograms;
   isLoading: boolean;
   error: string | null;
   fetchAllPrograms: () => Promise<void>;
   fetchFeaturedPrograms: () => Promise<void>;
-  fetchRecommendedPrograms: () => Promise<void>;
   fetchUserPrograms: () => Promise<void>;
-  toggleFavorite: (programId: number) => Promise<void>;
-  toggleWatchLater: (programId: number) => Promise<void>;
-  updateUserPrograms: (updatedPrograms: Partial<UserPrograms>) => void;
   refreshUserPrograms: () => Promise<void>;
-  isPurchased: (programId: string) => boolean;
+  updateProgramProgress: (
+    programId: string, 
+    sessionId: string, 
+    progress: NonNullable<Session['progress']>
+  ) => Promise<void>;
 }
 
 const ProgramContext = createContext<ProgramContextType | undefined>(undefined);
@@ -39,27 +36,33 @@ const useApiCache = <T,>(fetcher: () => Promise<T>) => {
   const [data, setData] = useState<T | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [lastFetched, setLastFetched] = useState<number | null>(null);
 
   const fetchData = useCallback(async () => {
-    if (data) return; // Return if data is already cached
+    // Cache for 5 minutes
+    if (data && lastFetched && Date.now() - lastFetched < 5 * 60 * 1000) {
+      return;
+    }
+
     setIsLoading(true);
     setError(null);
     try {
       const result = await fetcher();
       setData(result);
+      setLastFetched(Date.now());
     } catch (err) {
       setError('Failed to fetch data. Please try again later.');
       logger.error('Error fetching data', { error: err });
     } finally {
       setIsLoading(false);
     }
-  }, [data, fetcher]);
+  }, [data, fetcher, lastFetched]);
 
   return { data, isLoading, error, fetchData };
 };
 
 export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { getToken } = useAuth();
+  const { user, getToken } = useAuth();
   const [userPrograms, setUserPrograms] = useState<UserPrograms>({
     purchased_programs: [],
     favorite_programs: [],
@@ -68,7 +71,6 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const allProgramsCache = useApiCache(apiFetchPrograms);
   const featuredProgramsCache = useApiCache(apiFetchFeaturedPrograms);
-  const recommendedProgramsCache = useApiCache(apiFetchPrograms); // Replace with actual recommended programs API when available
 
   const fetchUserProgramsCallback = useCallback(async () => {
     try {
@@ -76,20 +78,24 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (token) {
         const programs = await apiFetchUserPrograms();
         setUserPrograms(programs);
-      } else {
-        throw new Error('Authentication token is missing');
       }
     } catch (error) {
       logger.error('Error fetching user programs', { error });
     }
   }, [getToken]);
 
-  const updateUserPrograms = useCallback((updatedPrograms: Partial<UserPrograms>) => {
-    setUserPrograms(prev => ({
-      ...prev,
-      ...updatedPrograms
-    }));
-  }, []);
+  // Fetch user programs on auth state change
+  useEffect(() => {
+    if (user) {
+      fetchUserProgramsCallback();
+    } else {
+      setUserPrograms({
+        purchased_programs: [],
+        favorite_programs: [],
+        watch_later_programs: [],
+      });
+    }
+  }, [user, fetchUserProgramsCallback]);
 
   const refreshUserPrograms = useCallback(async () => {
     try {
@@ -97,57 +103,91 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
       if (token) {
         const programs = await apiFetchUserPrograms();
         setUserPrograms(programs);
+        eventBus.publish('userProgramsUpdated');
       }
     } catch (error) {
       logger.error('Error refreshing user programs', { error });
     }
   }, [getToken]);
 
-  const toggleFavoriteCallback = useCallback(async (programId: number) => {
-    try {
-      await toggleFavorite(programId);
-      await refreshUserPrograms();
-      eventBus.publish('userProgramsUpdated');
-    } catch (error) {
-      logger.error('Error toggling favorite', { error });
-    }
-  }, [refreshUserPrograms]);
-  
-  const toggleWatchLaterCallback = useCallback(async (programId: number) => {
-    try {
-      await toggleWatchLater(programId);
-      await refreshUserPrograms();
-      eventBus.publish('userProgramsUpdated');
-    } catch (error) {
-      logger.error('Error toggling watch later', { error });
-    }
-  }, [refreshUserPrograms]);
+  const updateProgramProgress = useCallback(async (
+    programId: string,
+    sessionId: string,
+    progress: NonNullable<Session['progress']>
+  ) => {
+    setUserPrograms((prev: UserPrograms) => {
+      const updatedPrograms = prev.purchased_programs.map((program: Program) => {
+        if (program.id === programId) {
+          const updatedSessions = program.sessions.map((session: Session) => {
+            if (session.id === sessionId) {
+              const currentProgress = session.progress || {
+                completed: false,
+                duration_watched: 0,
+                last_position: 0,
+              };
 
-  const isPurchased = useCallback((programId: string) => {
-    return userPrograms.purchased_programs.some(program => program.id === programId);
-  }, [userPrograms.purchased_programs]);
+              return {
+                ...session,
+                progress: {
+                  ...currentProgress,
+                  completed: progress.completed,
+                  completedAt: progress.completedAt,
+                  duration_watched: progress.duration_watched,
+                  last_position: progress.last_position,
+                },
+              };
+            }
+            return session;
+          });
 
-  const isLoading = allProgramsCache.isLoading || featuredProgramsCache.isLoading || recommendedProgramsCache.isLoading;
-  const error = allProgramsCache.error || featuredProgramsCache.error || recommendedProgramsCache.error;
+          // Calculate new program progress
+          const totalSessions = updatedSessions.length;
+          const completedSessions = updatedSessions.filter((s: Session) => s.progress?.completed === true).length;
+          const completionPercentage = Math.round((completedSessions / totalSessions) * 100);
+
+          return {
+            ...program,
+            sessions: updatedSessions,
+            progress: {
+              ...program.progress,
+              started: true,
+              startedAt: program.progress?.startedAt || new Date(),
+              completion_percentage: completionPercentage,
+              sessions_completed: completedSessions,
+              completed: completionPercentage === 100,
+              completedAt: completionPercentage === 100 ? new Date() : undefined,
+              last_session_id: sessionId,
+            },
+          };
+        }
+        return program;
+      });
+
+      return {
+        ...prev,
+        purchased_programs: updatedPrograms,
+      };
+    });
+
+    eventBus.publish('programProgressUpdated');
+  }, []);
+
+  const isLoading = allProgramsCache.isLoading || featuredProgramsCache.isLoading;
+  const error = allProgramsCache.error || featuredProgramsCache.error;
 
   return (
     <ProgramContext.Provider 
-      value={{ 
+      value={{
         allPrograms: allProgramsCache.data || [],
         featuredPrograms: featuredProgramsCache.data || [],
-        recommendedPrograms: recommendedProgramsCache.data || [],
-        userPrograms, 
-        isLoading, 
-        error, 
+        userPrograms,
+        isLoading,
+        error,
         fetchAllPrograms: allProgramsCache.fetchData,
         fetchFeaturedPrograms: featuredProgramsCache.fetchData,
-        fetchRecommendedPrograms: recommendedProgramsCache.fetchData,
         fetchUserPrograms: fetchUserProgramsCallback,
-        toggleFavorite: toggleFavoriteCallback,
-        toggleWatchLater: toggleWatchLaterCallback,
-        updateUserPrograms,
         refreshUserPrograms,
-        isPurchased,
+        updateProgramProgress,
       }}
     >
       {children}

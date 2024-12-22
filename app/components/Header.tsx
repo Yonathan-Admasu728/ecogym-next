@@ -46,32 +46,16 @@ const Header: React.FC = () => {
               ))}
               {user ? (
                 <li>
-                  <Link href="/dashboard" className="flex items-center">
-                    <div className="relative w-8 h-8 mr-2">
-                      {user.photoURL ? (
-                        <Image
-                          src={user.photoURL}
-                          alt="User Avatar"
-                          fill
-                          sizes="32px"
-                          className="rounded-full"
-                          style={{ objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <Image
-                          src="/images/placeholder-avatar.svg"
-                          alt="Default Avatar"
-                          fill
-                          sizes="32px"
-                          className="rounded-full"
-                          style={{ objectFit: 'cover' }}
-                        />
-                      )}
-                    </div>
-                    <span className="text-white hover:text-turquoise-400 transition duration-300">
-                      {user.displayName || 'Dashboard'}
-                    </span>
-                  </Link>
+                  <div className="relative w-8 h-8">
+                    <Image
+                      src={user.photoURL || '/images/placeholder-avatar.svg'}
+                      alt="User Avatar"
+                      fill
+                      sizes="32px"
+                      className="rounded-full cursor-pointer hover:ring-2 hover:ring-turquoise-400 transition-all duration-300"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
                 </li>
               ) : (
                 <li>
@@ -101,32 +85,16 @@ const Header: React.FC = () => {
               ))}
               {user ? (
                 <li>
-                  <Link href="/dashboard" className="flex items-center">
-                    <div className="relative w-8 h-8 mr-2">
-                      {user.photoURL ? (
-                        <Image
-                          src={user.photoURL}
-                          alt="User Avatar"
-                          fill
-                          sizes="32px"
-                          className="rounded-full"
-                          style={{ objectFit: 'cover' }}
-                        />
-                      ) : (
-                        <Image
-                          src="/images/placeholder-avatar.svg"
-                          alt="Default Avatar"
-                          fill
-                          sizes="32px"
-                          className="rounded-full"
-                          style={{ objectFit: 'cover' }}
-                        />
-                      )}
-                    </div>
-                    <span className="text-white hover:text-turquoise-400 transition duration-300">
-                      {user.displayName || 'Dashboard'}
-                    </span>
-                  </Link>
+                  <div className="relative w-8 h-8">
+                    <Image
+                      src={user.photoURL || '/images/placeholder-avatar.svg'}
+                      alt="User Avatar"
+                      fill
+                      sizes="32px"
+                      className="rounded-full"
+                      style={{ objectFit: 'cover' }}
+                    />
+                  </div>
                 </li>
               ) : (
                 <li>

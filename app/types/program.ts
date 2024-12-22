@@ -26,11 +26,6 @@ export interface FeaturedProgramsResponse {
   programs: Program[];
 }
 
-export interface RecommendedProgramsResponse {
-  programs: Program[];
-  reason?: string;
-}
-
 export interface ProgramFilters {
   category?: string;
   level?: string;
@@ -46,4 +41,10 @@ export interface ProgramStats {
   averageRating: number;
   totalReviews: number;
   completionRate: number;
+}
+
+export interface UserPrograms {
+  purchased_programs: Program[];
+  favorite_programs: Program[];
+  watch_later_programs: Program[];
 }

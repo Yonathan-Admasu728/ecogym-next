@@ -8,7 +8,6 @@ import {
   ProgramListResponse,
   ProgramResponse,
   ProgramsResponse,
-  RecommendedProgramsResponse,
 } from '../types/program';
 import axiosInstance from '../utils/axiosConfig';
 import { logger } from '../utils/logger';
@@ -52,16 +51,6 @@ export async function getFeaturedPrograms(): Promise<Program[]> {
     return response.data.programs;
   } catch (error) {
     handleProgramError(error, 'get featured programs');
-    throw error;
-  }
-}
-
-export async function getRecommendedPrograms(): Promise<Program[]> {
-  try {
-    const response = await axiosInstance.get<RecommendedProgramsResponse>('/programs/recommended');
-    return response.data.programs;
-  } catch (error) {
-    handleProgramError(error, 'get recommended programs');
     throw error;
   }
 }

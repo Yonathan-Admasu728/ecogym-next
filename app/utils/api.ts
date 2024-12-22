@@ -1,166 +1,86 @@
-import { AxiosError } from 'axios';
-
+import axios from './axiosConfig';
 import { Program } from '../types';
-import axiosInstance from './axiosConfig';
+import { ProgramListResponse, UserPrograms, ProgramResponse } from '../types/program';
+import { Session } from '../types';
 import { logger } from './logger';
 
-export interface UserPrograms {
-  purchased_programs: Program[];
-  favorite_programs: Program[];
-  watch_later_programs: Program[];
-}
-
-interface ApiResponse<T> {
-  data: T;
-  message?: string;
-  status: number;
-}
-
-class ApiError extends Error {
-  constructor(
-    message: string,
-    public status?: number,
-    public code?: string
-  ) {
-    super(message);
-    this.name = 'ApiError';
+export async function getProgram(id: string): Promise<Program> {
+  try {
+    const response = await axios.get<ProgramResponse>(`/api/programs/${id}`);
+    return response.data.program;
+  } catch (error) {
+    logger.error('Error fetching program:', error);
+    throw error;
   }
 }
 
-const handleApiError = (error: unknown, context: string): never => {
-  if (error instanceof AxiosError) {
-    const status = error.response?.status;
-    const message = error.response?.data?.message || error.message;
-    const code = error.code;
-
-    logger.error(`API Error: ${context}`, {
-      status,
-      message,
-      code,
-      url: error.config?.url
-    });
-
-    throw new ApiError(
-      `Failed to ${context}: ${message}`,
-      status,
-      code
-    );
-  }
-
-  logger.error(`Unexpected error during ${context}`, error);
-  throw new ApiError(`An unexpected error occurred while ${context}`);
-};
-
-export const getProgram = async (programId: string): Promise<Program> => {
+export async function fetchProgramsByCategory(category: string): Promise<Program[]> {
   try {
-    const response = await axiosInstance.get<ApiResponse<Program>>(`/programs/${programId}`);
-    return response.data.data;
+    const response = await axios.get<ProgramListResponse>(`/api/programs?category=${category}`);
+    return response.data.programs;
   } catch (error) {
-    return handleApiError(error, `fetch program ${programId}`);
+    logger.error('Error fetching programs by category:', error);
+    throw error;
   }
-};
+}
 
-export const fetchUserPrograms = async (): Promise<UserPrograms> => {
+export async function fetchPrograms(): Promise<Program[]> {
   try {
-    const response = await axiosInstance.get<ApiResponse<UserPrograms>>('/user/programs');
-    return response.data.data;
+    const response = await axios.get<ProgramListResponse>('/api/programs');
+    return response.data.programs;
   } catch (error) {
-    return handleApiError(error, 'fetch user programs');
+    logger.error('Error fetching programs:', error);
+    throw error;
   }
-};
+}
 
-export const fetchFeaturedPrograms = async (): Promise<Program[]> => {
+export async function fetchFeaturedPrograms(): Promise<Program[]> {
   try {
-    const response = await axiosInstance.get<ApiResponse<Program[]>>('/programs/featured');
-    return response.data.data;
+    const response = await axios.get<ProgramListResponse>('/api/programs/featured');
+    return response.data.programs;
   } catch (error) {
-    return handleApiError(error, 'fetch featured programs');
+    logger.error('Error fetching featured programs:', error);
+    throw error;
   }
-};
+}
 
-export const fetchRecommendedPrograms = async (): Promise<Program[]> => {
+export async function fetchUserPrograms(): Promise<UserPrograms> {
   try {
-    const response = await axiosInstance.get<ApiResponse<Program[]>>('/programs/recommended');
-    return response.data.data;
+    const response = await axios.get<UserPrograms>('/api/user/programs');
+    return response.data;
   } catch (error) {
-    return handleApiError(error, 'fetch recommended programs');
+    logger.error('Error fetching user programs:', error);
+    throw error;
   }
-};
+}
 
-export const fetchPrograms = async (): Promise<Program[]> => {
+export async function toggleFavorite(programId: number): Promise<void> {
   try {
-    const response = await axiosInstance.get<ApiResponse<Program[]>>('/programs');
-    return response.data.data;
+    await axios.post(`/api/user/programs/${programId}/favorite`);
   } catch (error) {
-    return handleApiError(error, 'fetch programs');
+    logger.error('Error toggling favorite:', error);
+    throw error;
   }
-};
+}
 
-export const fetchProgramsByCategory = async (category: string): Promise<Program[]> => {
+export async function toggleWatchLater(programId: number): Promise<void> {
   try {
-    const response = await axiosInstance.get<ApiResponse<Program[]>>(`/programs?category=${encodeURIComponent(category)}`);
-    return response.data.data;
+    await axios.post(`/api/user/programs/${programId}/watch-later`);
   } catch (error) {
-    return handleApiError(error, `fetch ${category} programs`);
+    logger.error('Error toggling watch later:', error);
+    throw error;
   }
-};
+}
 
-export const toggleFavorite = async (programId: number): Promise<void> => {
+export async function updateSessionProgress(
+  programId: string,
+  sessionId: string,
+  progress: Partial<Session['progress']>
+): Promise<void> {
   try {
-    const response = await axiosInstance.post<ApiResponse<void>>(`/user/favorites/toggle/${programId}`);
-    if (response.status !== 200) {
-      throw new ApiError('Failed to toggle favorite', response.status);
-    }
-    logger.info('Successfully toggled favorite', { programId });
+    await axios.post(`/api/user/programs/${programId}/sessions/${sessionId}/progress`, progress);
   } catch (error) {
-    handleApiError(error, `toggle favorite for program ${programId}`);
+    logger.error('Error updating session progress:', error);
+    throw error;
   }
-};
-
-export const toggleWatchLater = async (programId: number): Promise<void> => {
-  try {
-    const response = await axiosInstance.post<ApiResponse<void>>(`/user/watch-later/toggle/${programId}`);
-    if (response.status !== 200) {
-      throw new ApiError('Failed to toggle watch later', response.status);
-    }
-    logger.info('Successfully toggled watch later', { programId });
-  } catch (error) {
-    handleApiError(error, `toggle watch later for program ${programId}`);
-  }
-};
-
-// Search programs
-export const searchPrograms = async (query: string): Promise<Program[]> => {
-  try {
-    const response = await axiosInstance.get<ApiResponse<Program[]>>(`/programs/search?q=${encodeURIComponent(query)}`);
-    return response.data.data;
-  } catch (error) {
-    return handleApiError(error, `search programs with query: ${query}`);
-  }
-};
-
-// Update program progress
-export const updateProgramProgress = async (programId: number, progress: number): Promise<void> => {
-  try {
-    const response = await axiosInstance.post<ApiResponse<void>>(`/user/programs/${programId}/progress`, { progress });
-    if (response.status !== 200) {
-      throw new ApiError('Failed to update program progress', response.status);
-    }
-    logger.info('Successfully updated program progress', { programId, progress });
-  } catch (error) {
-    handleApiError(error, `update progress for program ${programId}`);
-  }
-};
-
-// Rate program
-export const rateProgram = async (programId: number, rating: number): Promise<void> => {
-  try {
-    const response = await axiosInstance.post<ApiResponse<void>>(`/programs/${programId}/rate`, { rating });
-    if (response.status !== 200) {
-      throw new ApiError('Failed to rate program', response.status);
-    }
-    logger.info('Successfully rated program', { programId, rating });
-  } catch (error) {
-    handleApiError(error, `rate program ${programId}`);
-  }
-};
+}

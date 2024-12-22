@@ -1,34 +1,68 @@
-import { useState, useCallback } from 'react';
+import { useCallback } from 'react';
 import { toast } from 'react-toastify';
 
-import { PaymentService } from '../services/PaymentService';
-import { Program } from '../types';
+import { useAuth } from '../context/AuthContext';
+import { usePrograms } from '../context/ProgramContext';
+import { Program, Session, SessionProgress } from '../types';
 import { logger } from '../utils/logger';
+import { 
+  toggleFavorite as apiFavorite, 
+  toggleWatchLater as apiWatchLater,
+  updateSessionProgress as apiUpdateSession
+} from '../utils/api';
 
 export interface ProgramActions {
   isLoading: boolean;
-  watchLaterIds: Set<string>;
-  favoriteIds: Set<string>;
-  completedIds: Set<string>;
-  purchasedProgramIds: Set<string>;
   handlePurchase: (program: Program) => Promise<void>;
-  handleToggleWatchLater: (programId: string) => void;
-  handleToggleFavorite: (programId: string) => void;
-  handleToggleCompleted: (programId: string) => void;
+  handleToggleWatchLater: (programId: string) => Promise<void>;
+  handleToggleFavorite: (programId: string) => Promise<void>;
+  handleSessionProgress: (programId: string, sessionId: string, progress: Partial<SessionProgress>) => Promise<void>;
   isProgramPurchased: (programId: string) => boolean;
+  isProgramFavorited: (programId: string) => boolean;
+  isProgramInWatchLater: (programId: string) => boolean;
+  getSessionProgress: (programId: string, sessionId: string) => SessionProgress | undefined;
 }
 
 export function useProgramActions(): ProgramActions {
-  const [isLoading, setIsLoading] = useState(false);
-  const [watchLaterIds, setWatchLaterIds] = useState<Set<string>>(new Set());
-  const [favoriteIds, setFavoriteIds] = useState<Set<string>>(new Set());
-  const [completedIds, setCompletedIds] = useState<Set<string>>(new Set());
-  const [purchasedProgramIds] = useState<Set<string>>(new Set());
+  const { user } = useAuth();
+  const { 
+    userPrograms,
+    isLoading,
+    refreshUserPrograms,
+    updateProgramProgress
+  } = usePrograms();
+
+  const isProgramPurchased = useCallback((programId: string): boolean => {
+    return userPrograms.purchased_programs.some((p: Program) => p.id === programId);
+  }, [userPrograms.purchased_programs]);
+
+  const isProgramFavorited = useCallback((programId: string): boolean => {
+    return userPrograms.favorite_programs.some((p: Program) => p.id === programId);
+  }, [userPrograms.favorite_programs]);
+
+  const isProgramInWatchLater = useCallback((programId: string): boolean => {
+    return userPrograms.watch_later_programs.some((p: Program) => p.id === programId);
+  }, [userPrograms.watch_later_programs]);
+
+  const getSessionProgress = useCallback((programId: string, sessionId: string): SessionProgress | undefined => {
+    const program = userPrograms.purchased_programs.find((p: Program) => p.id === programId);
+    return program?.sessions.find((s: Session) => s.id === sessionId)?.progress;
+  }, [userPrograms.purchased_programs]);
 
   const handlePurchase = useCallback(async (program: Program) => {
-    setIsLoading(true);
+    if (!user) {
+      toast.error('Please sign in to purchase programs');
+      return;
+    }
+
     try {
-      const session = await PaymentService.createCheckoutSession(program.id);
+      const response = await fetch('/api/payments/create-checkout-session', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ programId: program.id })
+      });
+
+      const session = await response.json();
       if (session.url) {
         window.location.href = session.url;
       } else {
@@ -37,61 +71,83 @@ export function useProgramActions(): ProgramActions {
     } catch (error) {
       logger.error('Purchase error:', error);
       toast.error('Failed to initiate purchase. Please try again.');
-    } finally {
-      setIsLoading(false);
     }
-  }, []);
+  }, [user]);
 
-  const handleToggleWatchLater = useCallback((programId: string) => {
-    setWatchLaterIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(programId)) {
-        newSet.delete(programId);
-      } else {
-        newSet.add(programId);
-      }
-      return newSet;
-    });
-  }, []);
+  const handleToggleWatchLater = useCallback(async (programId: string) => {
+    if (!user) {
+      toast.error('Please sign in to add programs to watch later');
+      return;
+    }
 
-  const handleToggleFavorite = useCallback((programId: string) => {
-    setFavoriteIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(programId)) {
-        newSet.delete(programId);
-      } else {
-        newSet.add(programId);
-      }
-      return newSet;
-    });
-  }, []);
+    try {
+      await apiWatchLater(Number(programId));
+      await refreshUserPrograms();
+      toast.success('Watch later list updated');
+    } catch (error) {
+      logger.error('Watch later error:', error);
+      toast.error('Failed to update watch later list');
+    }
+  }, [user, refreshUserPrograms]);
 
-  const handleToggleCompleted = useCallback((programId: string) => {
-    setCompletedIds((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(programId)) {
-        newSet.delete(programId);
-      } else {
-        newSet.add(programId);
-      }
-      return newSet;
-    });
-  }, []);
+  const handleToggleFavorite = useCallback(async (programId: string) => {
+    if (!user) {
+      toast.error('Please sign in to favorite programs');
+      return;
+    }
 
-  const isProgramPurchased = useCallback((programId: string) => {
-    return purchasedProgramIds.has(programId);
-  }, [purchasedProgramIds]);
+    try {
+      await apiFavorite(Number(programId));
+      await refreshUserPrograms();
+      toast.success('Favorites updated');
+    } catch (error) {
+      logger.error('Favorite error:', error);
+      toast.error('Failed to update favorites');
+    }
+  }, [user, refreshUserPrograms]);
+
+  const handleSessionProgress = useCallback(async (
+    programId: string, 
+    sessionId: string, 
+    progress: Partial<SessionProgress>
+  ) => {
+    if (!user) {
+      toast.error('Please sign in to track progress');
+      return;
+    }
+
+    try {
+      // Get current progress
+      const currentProgress = getSessionProgress(programId, sessionId) || {
+        completed: false,
+        duration_watched: 0,
+        last_position: 0,
+      };
+
+      // Merge with new progress
+      const updatedProgress: SessionProgress = {
+        ...currentProgress,
+        ...progress,
+        completedAt: progress.completed ? new Date() : currentProgress.completedAt,
+      };
+
+      await apiUpdateSession(programId, sessionId, updatedProgress);
+      await updateProgramProgress(programId, sessionId, updatedProgress);
+    } catch (error) {
+      logger.error('Session progress error:', error);
+      toast.error('Failed to update progress');
+    }
+  }, [user, updateProgramProgress, getSessionProgress]);
 
   return {
     isLoading,
-    watchLaterIds,
-    favoriteIds,
-    completedIds,
-    purchasedProgramIds,
     handlePurchase,
     handleToggleWatchLater,
     handleToggleFavorite,
-    handleToggleCompleted,
+    handleSessionProgress,
     isProgramPurchased,
+    isProgramFavorited,
+    isProgramInWatchLater,
+    getSessionProgress,
   };
 }
