@@ -17,6 +17,16 @@ import {
 
 import { logger } from '../utils/logger';
 
+// Add production environment check at the start
+if (process.env.NODE_ENV === 'production') {
+  console.log('Environment check:', {
+    nodeEnv: process.env.NODE_ENV,
+    hasApiKey: !!process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    hasAuthDomain: !!process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    hasProjectId: !!process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID
+  });
+}
+
 interface FirebaseConfig extends FirebaseOptions {
   measurementId?: string;
 }
@@ -28,13 +38,24 @@ class FirebaseInitError extends Error {
   }
 }
 
-// Validate Firebase configuration
+// Enhanced validation with detailed logging
 function validateConfig(): FirebaseConfig | null {
   const requiredEnvVars = [
     'NEXT_PUBLIC_FIREBASE_API_KEY',
     'NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN',
     'NEXT_PUBLIC_FIREBASE_PROJECT_ID',
   ];
+
+  // Add production logging
+  if (process.env.NODE_ENV === 'production') {
+    logger.debug('Checking environment variables in production:', {
+      envVars: requiredEnvVars.map(varName => ({
+        name: varName,
+        exists: !!process.env[varName],
+        length: process.env[varName]?.length || 0
+      }))
+    });
+  }
 
   const missingVars = requiredEnvVars.filter(varName => !process.env[varName]);
   if (missingVars.length > 0) {
@@ -61,60 +82,69 @@ function validateConfig(): FirebaseConfig | null {
     measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
   };
 
-  // Log config in development (excluding sensitive info)
-  if (process.env.NODE_ENV === 'development') {
-    logger.debug('Firebase Config:', {
-      authDomain: config.authDomain,
-      projectId: config.projectId,
-      storageBucket: config.storageBucket,
-      measurementId: config.measurementId,
-    });
-  }
+  // Enhanced logging for both development and production
+  logger.debug('Firebase Config:', {
+    authDomain: config.authDomain,
+    projectId: config.projectId,
+    storageBucket: config.storageBucket,
+    measurementId: config.measurementId,
+    environment: process.env.NODE_ENV
+  });
 
   return config;
 }
 
-if (process.env.NODE_ENV === 'production') {
-  logger.debug('Firebase Config in Production:', {
-    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
-    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
-    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
-    measurementId: process.env.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID,
-  });
-}
-
-// Initialize Firebase
+// Initialize Firebase with enhanced error handling
 const firebaseAuth: { auth: Auth | null } = (() => {
   try {
     const apps = getApps();
+    
+    // Debug logging for existing apps
+    logger.debug('Firebase initialization start:', { 
+      existingApps: apps.length,
+      environment: process.env.NODE_ENV 
+    });
+    
     const config = validateConfig();
     
-    // If no config in development, return null auth
     if (!config && process.env.NODE_ENV === 'development') {
       logger.warn('Firebase not initialized in development mode due to missing config');
       return { auth: null };
     }
 
     if (!config) {
-      throw new FirebaseInitError('Invalid Firebase configuration');
+      const error = new FirebaseInitError('Invalid Firebase configuration');
+      logger.error('Firebase config validation failed', {
+        nodeEnv: process.env.NODE_ENV,
+        hasConfig: !!config
+      });
+      throw error;
     }
+    
+    logger.debug('Firebase config validated successfully');
     
     const app = apps.length === 0 ? initializeApp(config) : apps[0];
     const auth = getAuth(app);
     
     // Set persistence to LOCAL
     setPersistence(auth, browserLocalPersistence)
-      .catch(_ => {
+      .catch(error => {
         logger.error('Failed to set auth persistence', {
-          error: 'Unknown error',
+          error: error instanceof Error ? error.message : 'Unknown error',
+          environment: process.env.NODE_ENV
         });
       });
 
-    logger.info('Firebase initialized successfully');
+    logger.info('Firebase initialized successfully', {
+      environment: process.env.NODE_ENV
+    });
     return { auth };
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    logger.error('Firebase initialization failed', { error: errorMessage });
+    logger.error('Firebase initialization failed', { 
+      error: errorMessage,
+      environment: process.env.NODE_ENV
+    });
     
     if (process.env.NODE_ENV === 'development') {
       logger.warn('Continuing in development mode with null auth');
@@ -175,7 +205,6 @@ export const getIdToken = async (forceRefresh = false): Promise<string | null> =
   }
 };
 
-// For backward compatibility with axiosConfig
 export const refreshToken = async (): Promise<string | null> => {
   return getIdToken(true);
 };
@@ -190,20 +219,18 @@ export const setupTokenRefresh = (onTokenRefresh: (token: string) => void): (() 
   let refreshTimeout: NodeJS.Timeout;
   let retryCount = 0;
   const MAX_RETRY_COUNT = 5;
-  const BASE_RETRY_DELAY = 5000; // 5 seconds
+  const BASE_RETRY_DELAY = 5000;
 
   const refreshTokenWithRetry = async () => {
     try {
       const token = await getIdToken(true);
       if (token) {
         onTokenRefresh(token);
-        retryCount = 0; // Reset retry count on success
-        // Schedule next refresh in 30 minutes
+        retryCount = 0;
         refreshTimeout = setTimeout(refreshTokenWithRetry, 30 * 60 * 1000);
       } else {
         handleRefreshError();
       }
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (_) {
       handleRefreshError();
     }
@@ -212,7 +239,7 @@ export const setupTokenRefresh = (onTokenRefresh: (token: string) => void): (() 
   const handleRefreshError = () => {
     if (retryCount < MAX_RETRY_COUNT) {
       retryCount++;
-      const delay = Math.min(BASE_RETRY_DELAY * Math.pow(2, retryCount), 5 * 60 * 1000); // Max 5 minutes
+      const delay = Math.min(BASE_RETRY_DELAY * Math.pow(2, retryCount), 5 * 60 * 1000);
       logger.warn('Token refresh failed, retrying...', {
         retryCount,
         nextRetryDelay: delay,
@@ -220,11 +247,9 @@ export const setupTokenRefresh = (onTokenRefresh: (token: string) => void): (() 
       refreshTimeout = setTimeout(refreshTokenWithRetry, delay);
     } else {
       logger.error('Token refresh failed after maximum retries');
-      // Optionally trigger a sign-out or error callback
     }
   };
 
-  // Start listening for auth state changes
   const unsubscribe = onAuthStateChanged(auth, async (user) => {
     if (refreshTimeout) {
       clearTimeout(refreshTimeout);
@@ -239,7 +264,6 @@ export const setupTokenRefresh = (onTokenRefresh: (token: string) => void): (() 
     }
   });
 
-  // Return cleanup function
   return () => {
     unsubscribe();
     if (refreshTimeout) {
