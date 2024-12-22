@@ -10,6 +10,20 @@ const nextConfig = {
       },
     ],
   },
+  productionBrowserSourceMaps: true,
+  webpack: (config, { dev, isServer }) => {
+    // Handle source maps and .mjs files
+    config.module.rules.push({
+      test: /\.mjs$/,
+      include: /node_modules/,
+      type: 'javascript/auto',
+      resolve: {
+        fullySpecified: false
+      }
+    });
+
+    return config;
+  },
 }
 
 export default nextConfig;

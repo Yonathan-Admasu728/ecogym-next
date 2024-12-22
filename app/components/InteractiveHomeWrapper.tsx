@@ -9,6 +9,7 @@ import CallToAction from '../components/CallToAction';
 import FeaturedPrograms from '../components/FeaturedPrograms';
 import HeroSection from '../components/HeroSection';
 import Testimonials from '../components/Testimonials';
+import ComingSoonPrograms from '../components/ComingSoonPrograms';
 import type { Program } from '../types';
 
 interface InteractiveHomeWrapperProps {
@@ -59,7 +60,7 @@ const InteractiveHomeWrapper: React.FC<InteractiveHomeWrapperProps> = ({
     <>
       <HeroSection onSearch={handleSearch} />
       <FeaturedPrograms programs={featuredPrograms} />
-        
+      <ComingSoonPrograms />
       <section id="about-us" className="py-24 bg-darkBlue-800 relative overflow-hidden">
         <div className="absolute inset-0 opacity-5">
           <Image 
