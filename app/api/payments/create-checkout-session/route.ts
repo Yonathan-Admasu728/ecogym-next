@@ -2,7 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import Stripe from 'stripe';
 
 import { auth } from '../../../libraries/firebase-admin';
-import { getProgram } from '../../../utils/api';
+import { getProgram, fetchUserPrograms } from '../../../utils/api';
+import { Program } from '../../../types';
 
 // Initialize Stripe with the latest API version
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
@@ -50,9 +51,28 @@ export async function POST(request: NextRequest): Promise<NextResponse<{
       );
     }
 
+    // Handle free programs
+    if (program.isFree) {
+      return NextResponse.json(
+        { error: 'Cannot create checkout session for free program' },
+        { status: 400 }
+      );
+    }
+
     if (!program.stripe_price_id) {
       return NextResponse.json(
         { error: 'Program is not available for purchase' },
+        { status: 400 }
+      );
+    }
+
+    // Check if already purchased
+    const userPrograms = await fetchUserPrograms();
+    const isPurchased = userPrograms.purchased_programs.some((p: Program) => p.id === program_id);
+    
+    if (isPurchased) {
+      return NextResponse.json(
+        { error: 'Program already purchased' },
         { status: 400 }
       );
     }

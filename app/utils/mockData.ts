@@ -1,4 +1,5 @@
 import { Program, Trainer } from '../types';
+import { logger } from './logger';
 
 export const mockTrainers: Record<string, Trainer> = {
   sarah: {
@@ -39,7 +40,7 @@ export const mockPrograms: Program[] = [
     title: '21-Day Calisthenics Challenge',
     description: 'Transform your body using just your bodyweight with this progressive calisthenics program.',
     detailed_description: 'This comprehensive program takes you from basic movements to advanced calisthenics skills over 21 days. Each session builds upon the previous ones, gradually increasing in difficulty while maintaining proper form and technique.',
-    category: 'fitness',
+    category: 'workout',
     subcategories: ['calisthenics', 'strength', 'bodyweight'],
     duration: '21 days',
     total_sessions: 21,
@@ -49,11 +50,11 @@ export const mockPrograms: Program[] = [
     thumbnailUrl: '/images/strength.png',
     price: 49.99,
     isFree: false,
+    is_free: false,
     program_type: 'multi_session_linear',
     estimated_completion_days: 21,
     average_rating: 4.8,
     review_count: 156,
-    ecoImpact: 'Reduces carbon footprint by eliminating gym commute',
     stripe_price_id: 'price_calisthenics21',
     recommended_schedule: {
       sessions_per_week: 6,
@@ -110,7 +111,7 @@ export const mockPrograms: Program[] = [
     title: 'Mindfulness Foundations',
     description: 'A comprehensive mindfulness program to reduce stress and increase focus.',
     detailed_description: 'Perfect for beginners, this program introduces key mindfulness concepts and meditation techniques that you can practice anywhere, anytime.',
-    category: 'mindfulness',
+    category: 'meditation',
     subcategories: ['meditation', 'stress-reduction'],
     duration: '4 weeks',
     total_sessions: 8,
@@ -120,11 +121,11 @@ export const mockPrograms: Program[] = [
     thumbnailUrl: '/images/med1.png',
     price: 29.99,
     isFree: false,
+    is_free: false,
     program_type: 'multi_session_flexible',
     estimated_completion_days: 28,
     average_rating: 4.9,
     review_count: 234,
-    ecoImpact: 'Zero environmental impact meditation practice',
     stripe_price_id: 'price_mindfulness',
     recommended_schedule: {
       sessions_per_week: 2,
@@ -162,7 +163,7 @@ export const mockPrograms: Program[] = [
     title: '30-Minute HIIT Blast',
     description: 'High-intensity interval training for maximum calorie burn.',
     detailed_description: 'A single intense session combining cardio and strength exercises for a full-body workout.',
-    category: 'fitness',
+    category: 'workout',
     subcategories: ['hiit', 'cardio'],
     duration: '30 minutes',
     total_sessions: 1,
@@ -172,10 +173,10 @@ export const mockPrograms: Program[] = [
     thumbnailUrl: '/images/hiit.png',
     price: 4.99,
     isFree: false,
+    is_free: false,
     program_type: 'single_session',
     average_rating: 4.7,
     review_count: 89,
-    ecoImpact: 'No equipment needed, eco-friendly workout',
     stripe_price_id: 'price_hiit30',
     features: ['Full-body workout', 'High-intensity exercises', 'Modifications provided'],
     learning_outcomes: ['Improve cardiovascular fitness', 'Boost metabolism', 'Build endurance'],
@@ -212,3 +213,15 @@ export const mockUser = {
   email: 'john@example.com',
   avatar: '/images/placeholder-avatar.svg'
 };
+
+// Log mock data initialization
+logger.debug('Mock data initialized', {
+  trainersCount: Object.keys(mockTrainers).length,
+  programsCount: mockPrograms.length,
+  programs: mockPrograms.map(p => ({
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    is_free: p.is_free
+  }))
+});

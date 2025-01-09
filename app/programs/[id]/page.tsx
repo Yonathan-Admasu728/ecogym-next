@@ -4,6 +4,8 @@ import { Suspense } from 'react';
 
 import ProgramDetailClient from '../../components/ProgramDetailClient';
 import { mockPrograms } from '../../utils/mockData';
+import { toString } from '../../types';
+import { logger } from '../../utils/logger';
 
 interface Props {
   params: { id: string };
@@ -12,17 +14,19 @@ interface Props {
 // Generate metadata for SEO
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const program = mockPrograms.find(p => 
-    p.id.toLowerCase() === params.id.toLowerCase() || 
+    toString(p.id).toLowerCase() === params.id.toLowerCase() || 
     p.category.toLowerCase() === params.id.toLowerCase()
   );
 
   if (!program) {
+    logger.debug('Program not found for metadata', { id: params.id });
     return {
       title: 'Program Not Found | EcoGym',
       description: 'The requested program could not be found.',
     };
   }
 
+  logger.debug('Generating metadata for program', { id: params.id, title: program.title });
   return {
     title: `${program.title} | EcoGym`,
     description: program.description,
@@ -76,9 +80,10 @@ export async function generateStaticParams(): Promise<Array<{ id: string }>> {
   const popularProgramIds = mockPrograms
     .filter(program => program.review_count && program.review_count > 100)
     .map(program => ({
-      id: program.id,
+      id: toString(program.id),
     }));
 
+  logger.debug('Generated static paths', { count: popularProgramIds.length });
   return popularProgramIds;
 }
 
@@ -100,14 +105,16 @@ function ProgramDetailSkeleton(): JSX.Element {
 
 export default async function ProgramPage({ params }: Props): Promise<JSX.Element> {
   const program = mockPrograms.find(p => 
-    p.id.toLowerCase() === params.id.toLowerCase() || 
+    toString(p.id).toLowerCase() === params.id.toLowerCase() || 
     p.category.toLowerCase() === params.id.toLowerCase()
   );
 
   if (!program) {
+    logger.debug('Program not found', { id: params.id });
     notFound();
   }
 
+  logger.debug('Rendering program page', { id: params.id, title: program.title });
   return (
     <Suspense fallback={<ProgramDetailSkeleton />}>
       <ProgramDetailClient program={program} />

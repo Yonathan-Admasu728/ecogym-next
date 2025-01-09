@@ -3,7 +3,7 @@ import { Inter, Poppins } from 'next/font/google'
 import Image from 'next/image'
 
 import Footer from './components/Footer'
-import HeaderWrapper from './components/HeaderWrapper'
+import Header from './components/Header'
 import { metadata } from './metadata'
 import { Providers } from './providers'
 
@@ -29,19 +29,20 @@ export default function RootLayout({
     <html lang="en">
       <body className={`${inter.variable} ${poppins.variable} font-body`}>
         <Providers>
-          <div className="relative min-h-screen">
-            <div className="fixed inset-0 -z-10">
+          <div className="flex flex-col min-h-screen">
+            <div className="fixed inset-0 -z-10 bg-[#0B1120]">
+              <div className="absolute inset-0 bg-gradient-to-b from-transparent via-blue-900/5 to-transparent"></div>
               <Image
                 src="/images/pattern.svg"
                 alt="Background pattern"
                 fill
                 priority
                 style={{ objectFit: "cover" }}
-                className="opacity-5"
+                className="opacity-[0.02] mix-blend-screen"
               />
             </div>
-            <HeaderWrapper />
-            <main className="pb-16">
+            <Header />
+            <main className="flex-grow">
               {children}
             </main>
             <Footer />

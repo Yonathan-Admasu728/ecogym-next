@@ -14,13 +14,13 @@ import {
 export interface ProgramActions {
   isLoading: boolean;
   handlePurchase: (program: Program) => Promise<void>;
-  handleToggleWatchLater: (programId: string) => Promise<void>;
-  handleToggleFavorite: (programId: string) => Promise<void>;
-  handleSessionProgress: (programId: string, sessionId: string, progress: Partial<SessionProgress>) => Promise<void>;
-  isProgramPurchased: (programId: string) => boolean;
-  isProgramFavorited: (programId: string) => boolean;
-  isProgramInWatchLater: (programId: string) => boolean;
-  getSessionProgress: (programId: string, sessionId: string) => SessionProgress | undefined;
+  handleToggleWatchLater: (programId: string | number) => Promise<void>;
+  handleToggleFavorite: (programId: string | number) => Promise<void>;
+  handleSessionProgress: (programId: string | number, sessionId: string, progress: Partial<SessionProgress>) => Promise<void>;
+  isProgramPurchased: (programId: string | number) => boolean;
+  isProgramFavorited: (programId: string | number) => boolean;
+  isProgramInWatchLater: (programId: string | number) => boolean;
+  getSessionProgress: (programId: string | number, sessionId: string) => SessionProgress | undefined;
 }
 
 export function useProgramActions(): ProgramActions {
@@ -32,20 +32,24 @@ export function useProgramActions(): ProgramActions {
     updateProgramProgress
   } = usePrograms();
 
-  const isProgramPurchased = useCallback((programId: string): boolean => {
-    return userPrograms.purchased_programs.some((p: Program) => p.id === programId);
+  const isProgramPurchased = useCallback((programId: string | number): boolean => {
+    const id = programId.toString();
+    return userPrograms.purchased_programs.some((p: Program) => p.id.toString() === id);
   }, [userPrograms.purchased_programs]);
 
-  const isProgramFavorited = useCallback((programId: string): boolean => {
-    return userPrograms.favorite_programs.some((p: Program) => p.id === programId);
+  const isProgramFavorited = useCallback((programId: string | number): boolean => {
+    const id = programId.toString();
+    return userPrograms.favorite_programs.some((p: Program) => p.id.toString() === id);
   }, [userPrograms.favorite_programs]);
 
-  const isProgramInWatchLater = useCallback((programId: string): boolean => {
-    return userPrograms.watch_later_programs.some((p: Program) => p.id === programId);
+  const isProgramInWatchLater = useCallback((programId: string | number): boolean => {
+    const id = programId.toString();
+    return userPrograms.watch_later_programs.some((p: Program) => p.id.toString() === id);
   }, [userPrograms.watch_later_programs]);
 
-  const getSessionProgress = useCallback((programId: string, sessionId: string): SessionProgress | undefined => {
-    const program = userPrograms.purchased_programs.find((p: Program) => p.id === programId);
+  const getSessionProgress = useCallback((programId: string | number, sessionId: string): SessionProgress | undefined => {
+    const id = programId.toString();
+    const program = userPrograms.purchased_programs.find((p: Program) => p.id.toString() === id);
     return program?.sessions.find((s: Session) => s.id === sessionId)?.progress;
   }, [userPrograms.purchased_programs]);
 
@@ -59,7 +63,7 @@ export function useProgramActions(): ProgramActions {
       const response = await fetch('/api/payments/create-checkout-session', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ programId: program.id })
+        body: JSON.stringify({ programId: program.id.toString() })
       });
 
       const session = await response.json();
@@ -74,14 +78,15 @@ export function useProgramActions(): ProgramActions {
     }
   }, [user]);
 
-  const handleToggleWatchLater = useCallback(async (programId: string) => {
+  const handleToggleWatchLater = useCallback(async (programId: string | number) => {
     if (!user) {
       toast.error('Please sign in to add programs to watch later');
       return;
     }
 
     try {
-      await apiWatchLater(Number(programId));
+      const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
+      await apiWatchLater(numericId);
       await refreshUserPrograms();
       toast.success('Watch later list updated');
     } catch (error) {
@@ -90,14 +95,15 @@ export function useProgramActions(): ProgramActions {
     }
   }, [user, refreshUserPrograms]);
 
-  const handleToggleFavorite = useCallback(async (programId: string) => {
+  const handleToggleFavorite = useCallback(async (programId: string | number) => {
     if (!user) {
       toast.error('Please sign in to favorite programs');
       return;
     }
 
     try {
-      await apiFavorite(Number(programId));
+      const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
+      await apiFavorite(numericId);
       await refreshUserPrograms();
       toast.success('Favorites updated');
     } catch (error) {
@@ -107,7 +113,7 @@ export function useProgramActions(): ProgramActions {
   }, [user, refreshUserPrograms]);
 
   const handleSessionProgress = useCallback(async (
-    programId: string, 
+    programId: string | number, 
     sessionId: string, 
     progress: Partial<SessionProgress>
   ) => {
@@ -131,7 +137,8 @@ export function useProgramActions(): ProgramActions {
         completedAt: progress.completed ? new Date() : currentProgress.completedAt,
       };
 
-      await apiUpdateSession(programId, sessionId, updatedProgress);
+      const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
+      await apiUpdateSession(numericId, sessionId, updatedProgress);
       await updateProgramProgress(programId, sessionId, updatedProgress);
     } catch (error) {
       logger.error('Session progress error:', error);

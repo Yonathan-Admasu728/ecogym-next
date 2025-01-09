@@ -24,7 +24,7 @@ interface ProgramContextType {
   fetchUserPrograms: () => Promise<void>;
   refreshUserPrograms: () => Promise<void>;
   updateProgramProgress: (
-    programId: string, 
+    programId: string | number, 
     sessionId: string, 
     progress: NonNullable<Session['progress']>
   ) => Promise<void>;
@@ -111,13 +111,13 @@ export const ProgramProvider: React.FC<{ children: React.ReactNode }> = ({ child
   }, [getToken]);
 
   const updateProgramProgress = useCallback(async (
-    programId: string,
+    programId: string | number,
     sessionId: string,
     progress: NonNullable<Session['progress']>
   ) => {
     setUserPrograms((prev: UserPrograms) => {
       const updatedPrograms = prev.purchased_programs.map((program: Program) => {
-        if (program.id === programId) {
+        if (program.id.toString() === programId.toString()) {
           const updatedSessions = program.sessions.map((session: Session) => {
             if (session.id === sessionId) {
               const currentProgress = session.progress || {

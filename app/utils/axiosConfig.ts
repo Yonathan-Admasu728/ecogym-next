@@ -12,19 +12,17 @@ interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
-const getBaseUrl = () => {
-  if (typeof window !== 'undefined') {
-    return process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api';
-  }
-  return process.env.API_URL || 'http://localhost:8000/api';
-};
-
 const axiosInstance = axios.create({
-  baseURL: getBaseUrl(),
+  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000',
   headers: {
     'Content-Type': 'application/json',
+    'Accept': 'application/json',
+    'Origin': 'http://localhost:3001'
   },
   timeout: 30000, // 30 second timeout
+  proxy: false, // Disable proxy to prevent IPv6 resolution
+  family: 4, // Force IPv4
+  withCredentials: true // Important for CORS with credentials
 });
 
 // Request timing tracking
@@ -80,7 +78,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor to handle token refresh and track timing
+// Response interceptor with retry logic for rate limiting
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     const requestId = response.config.headers?.['X-Request-ID'] as string;
@@ -131,8 +129,29 @@ axiosInstance.interceptors.response.use(
       response: error.response?.data
     });
 
-    // Handle 401 errors and token refresh
-    if (
+    // Handle rate limiting and token refresh
+    if (error.response?.status === 429 && !originalRequest._retry) {
+      const retryAfter = error.response.headers['retry-after'];
+      const delay = retryAfter ? parseInt(retryAfter) * 1000 : 1000;
+      
+      // If retry delay is too long (> 10 seconds), return empty response instead of waiting
+      if (delay > 10000) {
+        logger.info(`Rate limit retry delay too long (${delay}ms), returning empty response`);
+        return Promise.resolve({
+          data: { programs: [] },
+          status: 200,
+          statusText: 'OK',
+          headers: {},
+          config: originalRequest
+        });
+      }
+      
+      logger.info(`Rate limited. Retrying after ${delay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, delay));
+      
+      originalRequest._retry = true;
+      return axiosInstance(originalRequest);
+    } else if (
       error.response?.status === 401 && 
       !originalRequest._retry && 
       typeof window !== 'undefined'

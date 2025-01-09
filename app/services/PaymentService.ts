@@ -49,7 +49,7 @@ export function handleApiError(error: unknown, context: string): never {
 export const PaymentService = {
   async createCheckoutSession(programId: string): Promise<CheckoutSessionResponse> {
     try {
-      const response = await axiosInstance.post<CheckoutSessionResponse>('/payments/create-checkout-session', {
+      const response = await axiosInstance.post<CheckoutSessionResponse>('/create-checkout-session', {
         programId,
       });
       return response.data;
@@ -61,7 +61,7 @@ export const PaymentService = {
 
   async getPurchasedPrograms(): Promise<string[]> {
     try {
-      const response = await axiosInstance.get<PurchasedProgramsResponse>('/payments/purchased-programs');
+      const response = await axiosInstance.get<PurchasedProgramsResponse>('/purchased-programs');
       return response.data.programs;
     } catch (error) {
       handleApiError(error, 'get purchased programs');
@@ -71,7 +71,7 @@ export const PaymentService = {
 
   async checkSubscriptionStatus(programId: string): Promise<boolean> {
     try {
-      const response = await axiosInstance.get<PurchaseStatusResponse>(`/payments/subscription-status/${programId}`);
+      const response = await axiosInstance.get<PurchaseStatusResponse>(`/subscription-status/${programId}`);
       return response.data.isPurchased;
     } catch (error) {
       handleApiError(error, 'check subscription status');
@@ -81,7 +81,7 @@ export const PaymentService = {
 
   async checkPurchaseStatus(sessionId: string): Promise<PurchaseStatusResponse> {
     try {
-      const response = await axiosInstance.get<PurchaseStatusResponse>(`/payments/check-purchase-status/${sessionId}`);
+      const response = await axiosInstance.get<PurchaseStatusResponse>(`/check-purchase-status/${sessionId}`);
       return response.data;
     } catch (error) {
       handleApiError(error, 'check purchase status');
@@ -91,7 +91,7 @@ export const PaymentService = {
 
   async verifyPurchase(sessionId: string): Promise<boolean> {
     try {
-      const response = await axiosInstance.post<PurchaseStatusResponse>('/payments/verify-purchase', {
+      const response = await axiosInstance.post<PurchaseStatusResponse>('/verify-purchase', {
         sessionId,
       });
       return response.data.isPurchased;
@@ -103,7 +103,7 @@ export const PaymentService = {
 
   async getPurchaseDetails(sessionId: string): Promise<PurchaseDetails> {
     try {
-      const response = await axiosInstance.get<PurchaseDetails>(`/payments/purchase-details/${sessionId}`);
+      const response = await axiosInstance.get<PurchaseDetails>(`/purchase-details/${sessionId}`);
       return {
         programId: response.data.programId,
         status: response.data.status,

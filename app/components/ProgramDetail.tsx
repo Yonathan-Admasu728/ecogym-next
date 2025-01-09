@@ -12,6 +12,8 @@ import ShareMenu from './ShareMenu';
 import { useAuth } from '../context/AuthContext';
 import { useProgramActions } from '../hooks/useProgramActions';
 
+const DEFAULT_THUMBNAIL = '/images/placeholder-program.svg';
+
 interface ProgramDetailProps {
   program: Program;
   onBack: () => void;
@@ -90,11 +92,12 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
         <div className="grid md:grid-cols-2 gap-8 mb-12">
           <div className="relative aspect-video rounded-lg overflow-hidden">
             <Image
-              src={program.thumbnail}
+              src={program.thumbnail || DEFAULT_THUMBNAIL}
               alt={program.title}
               className="w-full h-full object-cover"
               width={800}
               height={450}
+              priority
             />
             <div className="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center">
               <button
@@ -107,7 +110,10 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
           </div>
 
           <div>
-            <h1 className="text-3xl font-bold mb-4">{program.title}</h1>
+            <h1 className="text-3xl font-bold mb-2">{program.title}</h1>
+            {program.tagline && (
+              <p className="text-xl text-turquoise-400 mb-4">{program.tagline}</p>
+            )}
             <p className="text-lightBlue-100 mb-6">{program.description}</p>
 
             <div className="flex flex-wrap gap-4 mb-6">
@@ -172,6 +178,7 @@ const ProgramDetail: React.FC<ProgramDetailProps> = ({
           <div>
             <h2 className="text-2xl font-bold mb-4">Program Sessions</h2>
             <SessionList
+              program={program}
               sessions={program.sessions || []}
               onPlaySession={handlePlaySession}
               isPurchased={isProgramPurchased(program.id)}

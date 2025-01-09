@@ -2,8 +2,9 @@ import { Metadata } from 'next';
 import React, { Suspense } from 'react';
 
 import InteractiveHomeWrapper from './components/InteractiveHomeWrapper';
-import { mockPrograms } from './utils/mockData';
 import { Program } from './types';
+import { getFeaturedPrograms as getFeaturedProgramsService } from './services/ProgramService';
+import { logger } from './utils/logger';
 
 export const metadata: Metadata = {
   title: 'EcoGym - Transform Your Mind and Body',
@@ -20,10 +21,18 @@ export const metadata: Metadata = {
 export const revalidate = 3600;
 
 async function getFeaturedPrograms(): Promise<Program[]> {
-  // In a real app, this would be a database call or API request
-  // For now, we'll filter the mock data
-  const featured = mockPrograms.filter(program => program.average_rating && program.average_rating >= 4.5);
-  return featured;
+  try {
+    const programs = await getFeaturedProgramsService();
+    if (!Array.isArray(programs)) {
+      logger.error('Featured programs is not an array', { programs });
+      return [];
+    }
+    logger.debug('Featured programs fetched', { programCount: programs.length });
+    return programs;
+  } catch (error) {
+    logger.error('Failed to fetch featured programs', { error });
+    return [];
+  }
 }
 
 export default async function HomePage(): Promise<JSX.Element> {
@@ -37,7 +46,9 @@ export default async function HomePage(): Promise<JSX.Element> {
             <div className="animate-spin rounded-full h-32 w-32 border-t-2 border-b-2 border-turquoise-400" />
           </div>
         }>
-          <InteractiveHomeWrapper featuredPrograms={featuredPrograms} />
+          <InteractiveHomeWrapper 
+            featuredPrograms={featuredPrograms}
+          />
         </Suspense>
       </main>
     </div>

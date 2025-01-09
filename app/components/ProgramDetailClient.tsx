@@ -8,6 +8,8 @@ import ProgramDetail from './ProgramDetail';
 import { useAuth } from '../context/AuthContext';
 import { PaymentService, PaymentServiceError } from '../services/PaymentService';
 import type { Program } from '../types';
+import { toString } from '../types';
+import { getFreeSessionCount } from '../types/program';
 import { logger } from '../utils/logger';
 
 interface Props {
@@ -26,7 +28,7 @@ export default function ProgramDetailClient({ program }: Props): JSX.Element {
 
   const handleEnroll = async (): Promise<void> => {
     if (!user) {
-      toast.error('Please sign in to enroll in this program', {
+      toast.error('Please sign in to access this program', {
         position: 'top-right',
         autoClose: 5000,
       });
@@ -34,13 +36,44 @@ export default function ProgramDetailClient({ program }: Props): JSX.Element {
     }
 
     if (program.isFree) {
-      router.push(`/programs/${program.id}/sessions`);
+      // Log free program access
+      logger.info('Free program accessed', { 
+        programId: program.id,
+        userId: user.uid 
+      });
+      router.push(`/programs/${toString(program.id)}/sessions`);
       return;
     }
 
+    // For non-free programs, check if they have free sessions
+    const freeCount = getFreeSessionCount(program);
+    if (freeCount > 0) {
+      // If it's a single session program and the session is free
+      if (program.program_type === 'single_session' && freeCount >= 1) {
+        logger.info('Free single session accessed', {
+          programId: program.id,
+          userId: user.uid
+        });
+        router.push(`/programs/${toString(program.id)}/sessions`);
+        return;
+      }
+
+      // For multi-session programs, allow access to free sessions
+      if (program.program_type?.startsWith('multi_session')) {
+        logger.info('Free sessions available', {
+          programId: program.id,
+          userId: user.uid,
+          freeCount
+        });
+        router.push(`/programs/${toString(program.id)}/sessions`);
+        return;
+      }
+    }
+
+    // Handle paid program enrollment
     try {
       setIsProcessing(true);
-      const checkoutSession = await PaymentService.createCheckoutSession(program.id);
+      const checkoutSession = await PaymentService.createCheckoutSession(toString(program.id));
       
       if (!checkoutSession?.url) {
         throw new PaymentServiceError('Failed to create checkout session');
@@ -54,9 +87,10 @@ export default function ProgramDetailClient({ program }: Props): JSX.Element {
 
       // Store program ID in session storage for post-purchase redirect
       try {
-        sessionStorage.setItem(STORAGE_KEYS.PROGRAM_ID, program.id);
+        sessionStorage.setItem(STORAGE_KEYS.PROGRAM_ID, toString(program.id));
+        sessionStorage.setItem(STORAGE_KEYS.REFERRER, window.location.pathname);
       } catch (storageError) {
-        logger.warn('Failed to store program ID in session storage', {
+        logger.warn('Failed to store program data in session storage', {
           error: storageError,
           programId: program.id
         });

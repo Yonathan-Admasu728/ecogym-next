@@ -1,193 +1,321 @@
-// app/blog/BlogContent.tsx
 'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
-import React from 'react';
+import Head from 'next/head';
+import { blogPosts } from './blogData';
+import { useState, type JSX, type FunctionComponent } from 'react';
 
-// Define the type for a blog post
-interface BlogPostType {
-    id: number;
-    title: string;
-    excerpt: string;
-    date: string;
-    author: string;
-    image: string;
-    slug: string;
-    content: string;
-}
-
-// Define props type for BlogPost component
 interface BlogPostProps {
-    post: BlogPostType;
+  post: {
+    title: string;
+    content: string;
+    image: string;
+    tags: string[];
+    author: string;
+    date: string;
+    slug: string;
+    description?: string;
+    featured?: boolean;
+  };
+  featured?: boolean;
 }
 
-// Mock data for blog posts
-const blogPosts: BlogPostType[] = [
-    {
-        id: 1,
-        title: "The Mindful Muscle: Integrating Meditation into Your Fitness Routine",
-        excerpt: "Discover how combining mindfulness with exercise can supercharge your workout results and overall well-being.",
-        date: "2023-07-22",
-        author: "Dr. Samantha Lee",
-        image: "/images/blog/outdormeditation.webp",
-        slug: "mindful-muscle-meditation-fitness",
-        content: `
-          <h2>The Power of Mind-Body Connection</h2>
-          <p>In the quest for peak physical fitness, we often overlook our most powerful tool: the mind. At Ecogym, we believe that true wellness comes from nurturing both body and mind. This post explores how integrating meditation into your fitness routine can lead to remarkable improvements in your physical performance and mental well-being.</p>
-      
-          <h2>The Science Behind Mindful Fitness</h2>
-          <p>Recent studies have shown that combining mindfulness practices with physical exercise can enhance muscle recovery, improve focus during workouts, and even boost your body's ability to build lean muscle mass. By engaging in mindful exercise, you're not just working out – you're tuning into your body's needs and capabilities on a deeper level.</p>
-      
-          <h2>5 Ways to Incorporate Mindfulness into Your Workouts</h2>
-          <ol>
-            <li><strong>Breathwork warm-ups:</strong> Start your session with 5 minutes of focused breathing to center your mind and prepare your body.</li>
-            <li><strong>Mindful stretching:</strong> Pay close attention to how each stretch feels, focusing on the sensation in your muscles.</li>
-            <li><strong>Moving meditation:</strong> During repetitive exercises like running or cycling, focus on the rhythm of your movement and breath.</li>
-            <li><strong>Visualization:</strong> Before attempting a challenging lift or move, visualize yourself successfully completing it.</li>
-            <li><strong>Cooldown reflection:</strong> End your workout with a short meditation, reflecting on your accomplishments and setting intentions for your next session.</li>
-          </ol>
-      
-          <h2>The Ecogym Approach</h2>
-          <p>At Ecogym, we've developed a unique program that seamlessly blends mindfulness practices with cutting-edge fitness routines. Our 'Mindful Muscle' classes combine high-intensity interval training (HIIT) with guided meditation interludes, allowing you to push your physical limits while maintaining mental clarity and focus.</p>
-      
-          <p>Remember, fitness isn't just about building a stronger body – it's about cultivating a resilient mind. By integrating mindfulness into your fitness routine, you're not just working out; you're working in, creating a harmonious balance that will elevate every aspect of your life.</p>
-        `
-      },
-      {
-        id: 2,
-        title: "Eco-Friendly Fitness: Sustainable Workout Practices for a Healthier Planet",
-        excerpt: "Learn how to make your fitness routine more environmentally friendly while still achieving your wellness goals.",
-        date: "2023-07-29",
-        author: "Alex Green",
-        image: "/images/blog/workingout.webp",
-        slug: "eco-friendly-fitness-sustainable-workouts",
-        content: `
-          <h2>Fitness for You and the Planet</h2>
-          <p>At Ecogym, we believe that personal wellness and environmental health go hand in hand. As fitness enthusiasts, we have a unique opportunity to make our workout routines more sustainable. This post explores innovative ways to stay fit while reducing your carbon footprint.</p>
-      
-          <h2>The Environmental Impact of Fitness</h2>
-          <p>From energy-hungry gym equipment to plastic water bottles and synthetic workout gear, the fitness industry can have a significant environmental impact. But with a few mindful changes, we can turn our workouts into a force for environmental good.</p>
-      
-          <h2>7 Eco-Friendly Fitness Practices</h2>
-          <ol>
-            <li><strong>Outdoor workouts:</strong> Embrace nature as your gym. Trail running, outdoor yoga, or beach workouts require no electricity and connect you with the environment.</li>
-            <li><strong>Human-powered equipment:</strong> Opt for equipment like push mowers or bicycle generators that harness your energy output.</li>
-            <li><strong>Sustainable gear:</strong> Choose workout clothes made from recycled materials or organic fabrics.</li>
-            <li><strong>Reusable water bottles:</strong> Ditch single-use plastics for a durable, reusable water bottle.</li>
-            <li><strong>Plogging:</strong> Combine jogging with picking up litter for a workout that directly benefits your community.</li>
-            <li><strong>Digital fitness tracking:</strong> Use apps instead of physical trackers to monitor your progress.</li>
-            <li><strong>Eco-friendly yoga mats:</strong> Swap out PVC mats for ones made from natural or recycled materials.</li>
-          </ol>
-      
-          <h2>The Ecogym Commitment</h2>
-          <p>At Ecogym, sustainability isn't just a buzzword – it's a core part of our mission. Our facilities use energy-efficient equipment, harness kinetic energy from workouts to power our buildings, and offer incentives for members who choose green transportation options.</p>
-      
-          <p>Remember, every small action counts. By making your fitness routine more eco-friendly, you're not just building a stronger body – you're contributing to a healthier planet. Let's work out for a better world, one rep at a time!</p>
-        `
-      },
-      {
-        id: 3,
-        title: "Biohacking Your Way to Peak Performance: Cutting-Edge Techniques for Mind and Body Optimization",
-        excerpt: "Explore innovative biohacking methods to elevate your physical and mental performance to new heights.",
-        date: "2023-08-05",
-        author: "Dr. Raj Patel",
-        image: "/images/blog/biohack.webp",
-        slug: "biohacking-peak-performance-optimization",
-        content: `
-          <h2>The Future of Fitness is Here</h2>
-          <p>Welcome to the cutting edge of human performance. At Ecogym, we're always pushing the boundaries of what's possible in fitness and wellness. Today, we're diving into the world of biohacking – the art and science of optimizing your biology for peak performance.</p>
-      
-          <h2>What is Biohacking?</h2>
-          <p>Biohacking is the practice of using science, technology, and self-experimentation to take control of and upgrade your body, mind, and life. It's about understanding your own biology and figuring out how to 'hack' it for better results.</p>
-      
-          <h2>5 Powerful Biohacking Techniques</h2>
-          <ol>
-            <li><strong>Cold Thermogenesis:</strong> Regular exposure to cold temperatures can boost metabolism, reduce inflammation, and improve mental clarity. Try ending your shower with 30 seconds of cold water, gradually increasing the duration.</li>
-            <li><strong>Neurofeedback Training:</strong> Use EEG devices to visualize your brain activity in real-time, allowing you to train your mind for better focus, relaxation, and cognitive performance.</li>
-            <li><strong>Intermittent Fasting:</strong> Cycle between periods of eating and fasting to improve insulin sensitivity, boost cellular repair, and enhance mental clarity. Start with a 16/8 fasting schedule (16 hours of fasting, 8-hour eating window).</li>
-            <li><strong>Red Light Therapy:</strong> Exposure to red and near-infrared light can boost cellular energy production, accelerate muscle recovery, and improve skin health. Consider investing in a red light therapy device for home use.</li>
-            <li><strong>Nootropic Stacking:</strong> Combine cognitive-enhancing supplements (nootropics) to create a personalized 'stack' that boosts your mental performance. Always consult with a healthcare professional before starting any new supplement regimen.</li>
-          </ol>
-      
-          <h2>The Ecogym Biohacking Lab</h2>
-          <p>At Ecogym, we've integrated biohacking principles into our facilities. Our Biohacking Lab features cryotherapy chambers, float tanks for sensory deprivation, and advanced biomarker testing. We also offer personalized biohacking consultations to help you create a tailored optimization plan.</p>
-      
-          <p>Remember, biohacking is about self-experimentation and finding what works best for your unique biology. Always approach new techniques with caution, start slowly, and listen to your body. With the right approach, biohacking can be your secret weapon for unlocking your full potential – in the gym and in life.</p>
-        `
-      },{
-        id: 4,
-        title: "The Neuroscience of Movement: How Exercise Shapes Your Brain",
-        excerpt: "Delve into the fascinating ways physical activity influences brain structure, function, and overall cognitive health.",
-        date: "2023-08-12",
-        author: "Dr. Elena Rodriguez",
-        image: "/images/blog/neuro.webp",
-        slug: "neuroscience-movement-exercise-brain",
-        content: `
-          <h2>Moving Beyond Muscle: The Brain-Body Connection</h2>
-          <p>At Ecogym, we've always known that exercise is good for you. But recent advances in neuroscience have revealed that the benefits of physical activity extend far beyond toned muscles and cardiovascular health. Today, we're exploring how exercise quite literally shapes your brain.</p>
-      
-          <h2>The Neuroplastic Nature of Exercise</h2>
-          <p>Neuroplasticity refers to the brain's ability to form new neural connections and adapt throughout life. Exercise is one of the most powerful drivers of neuroplasticity, promoting the growth of new brain cells and strengthening the connections between them.</p>
-      
-          <h2>5 Ways Exercise Transforms Your Brain</h2>
-          <ol>
-            <li><strong>Boosting BDNF:</strong> Physical activity increases the production of Brain-Derived Neurotrophic Factor (BDNF), often called 'Miracle-Gro for the brain'. BDNF promotes the survival of existing neurons and encourages the growth of new ones.</li>
-            <li><strong>Expanding the Hippocampus:</strong> Regular aerobic exercise has been shown to increase the size of the hippocampus, the brain region associated with memory and learning.</li>
-            <li><strong>Enhancing Executive Function:</strong> Activities that combine physical exertion with complex motor skills (like dance or martial arts) can significantly improve executive function, including planning, decision making, and multitasking abilities.</li>
-            <li><strong>Reducing Cognitive Decline:</strong> Consistent physical activity is linked to a slower rate of age-related cognitive decline and a reduced risk of neurodegenerative diseases like Alzheimer's.</li>
-            <li><strong>Alleviating Depression and Anxiety:</strong> Exercise promotes the release of endorphins and other neurotransmitters that can help alleviate symptoms of depression and anxiety, often as effectively as medication.</li>
-          </ol>
-      
-          <h2>The Ecogym Neuro-Fitness Program</h2>
-          <p>Inspired by these findings, we've developed our Neuro-Fitness Program at Ecogym. This innovative regimen combines cardiovascular exercise, complex motor skill training, and cognitive challenges to maximize the brain-boosting benefits of your workout.</p>
-      
-          <h2>Optimizing Your Brain Through Movement</h2>
-          <p>To get the most cognitive benefit from your workouts, try these strategies:</p>
-          <ul>
-            <li>Vary your routine: Different types of exercise affect the brain in different ways. Mix cardio, strength training, and skills-based activities.</li>
-            <li>Learn new movements: Challenging your brain with novel movement patterns enhances neuroplasticity.</li>
-            <li>Exercise outdoors: Combining physical activity with exposure to nature provides additional cognitive benefits.</li>
-            <li>Stay consistent: Regular exercise provides cumulative benefits to brain health over time.</li>
-          </ul>
-      
-          <p>Remember, every time you move your body, you're not just building a healthier physique – you're sculpting a sharper, more resilient mind. At Ecogym, we're committed to helping you optimize both your physical and cognitive performance. Let's exercise for a fitter body and a sharper mind!</p>
-        `
-      }
-  // Add more blog posts here
-];
+const calculateReadingTime = (content: string): number => {
+  const wordsPerMinute = 200;
+  const wordCount = content.split(/\s+/).length;
+  return Math.ceil(wordCount / wordsPerMinute);
+};
 
+const BlogPost: FunctionComponent<BlogPostProps> = (props: BlogPostProps): JSX.Element => {
+  const { post, featured } = props;
+  const readingTime = calculateReadingTime(post.content);
+  const previewText = post.content.replace(/<[^>]*>/g, '').slice(0, featured ? 300 : 150) + '...';
 
-  const BlogPost: React.FC<BlogPostProps> = ({ post }) => (
-    <div className="bg-gray-800 rounded-lg overflow-hidden shadow-lg transition-transform duration-300 hover:transform hover:scale-105">
-      <Image src={post.image} alt={post.title} width={400} height={200} className="w-full h-48 object-cover" />
-      <div className="p-6">
-        <h2 className="text-xl font-semibold mb-2">{post.title}</h2>
-        <p className="text-gray-400 mb-4">{post.excerpt}</p>
-        <div className="flex justify-between items-center text-sm text-gray-500">
-          <span>{post.author}</span>
-          <span>{new Date(post.date).toLocaleDateString()}</span>
+  return (
+    <article className={`bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300 hover:-translate-y-1 flex flex-col h-full ${featured ? 'lg:col-span-2 lg:grid lg:grid-cols-2' : ''}`}>
+      <div className={`relative ${featured ? 'h-96 lg:h-full' : 'h-48'}`}>
+        <Image
+          src={post.image}
+          alt={`${post.title} - Ecogym Blog Post`}
+          fill
+          className="object-cover"
+          sizes={featured ? "(max-width: 1024px) 100vw, 50vw" : "(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"}
+          priority={featured}
+          loading={featured ? "eager" : "lazy"}
+          quality={90}
+        />
+        {featured && (
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        )}
+      </div>
+      <div className={`p-6 flex flex-col flex-grow ${featured ? 'lg:p-8' : ''}`}>
+        <div className="flex flex-wrap gap-2 mb-3">
+          {post.tags.map(tag => (
+            <span 
+              key={tag} 
+              className="bg-[#EEF2FF] text-[#4F46E5] px-4 py-1.5 rounded-full text-sm font-medium hover:bg-indigo-100 transition-colors cursor-pointer"
+            >
+              {tag}
+            </span>
+          ))}
         </div>
-        <Link href={`/blog/${post.slug}`} className="mt-4 inline-block bg-teal-500 text-white px-4 py-2 rounded hover:bg-teal-600 transition-colors duration-300">
-          Read More
+        <h2 className={`font-bold mb-4 ${featured ? 'text-3xl lg:text-4xl' : 'text-2xl'} line-clamp-2`}>
+          {post.title}
+        </h2>
+        <p className="text-gray-600 mb-6 line-clamp-2 text-base leading-relaxed">{previewText}</p>
+        <div className="flex items-center gap-8 text-base text-gray-500 mb-6 mt-auto">
+          <span className="flex items-center">
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+            </svg>
+            {post.author}
+          </span>
+          <span className="flex items-center">
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            {readingTime} min read
+          </span>
+          <time dateTime={post.date} className="flex items-center">
+            <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            {new Date(post.date).toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric'
+            })}
+          </time>
+        </div>
+        <Link
+          href={`/blog/${post.slug}`}
+          className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+        >
+          Read Article
+          <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+          </svg>
         </Link>
       </div>
-    </div>
+    </article>
   );
+};
 
-  const BlogContent: React.FC = () => {
-    return (
-      <div className="bg-gradient-to-b from-gray-900 to-gray-800 text-white min-h-screen">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-          <h1 className="text-4xl font-bold mb-8 text-center">Ecogym Blog</h1>
+export default function BlogContent(): JSX.Element {
+  const pageTitle = "Ecogym Blog - Fitness Tips & Wellness Insights";
+  const pageDescription = "Explore our collection of fitness articles, wellness tips, and expert advice to enhance your health journey with Ecogym.";
+  const canonicalUrl = "https://ecogym.com/blog";
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+
+  // Get unique tags from all posts
+  const allTags = Array.from(new Set(blogPosts.flatMap(post => post.tags)));
+
+  // Filter posts based on search term and selected tags
+  const filteredPosts = blogPosts.filter(post => {
+    const matchesSearch = searchTerm === '' || 
+      post.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      post.description.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTags = selectedTags.length === 0 ||
+      selectedTags.every(tag => post.tags.includes(tag));
+
+    return matchesSearch && matchesTags;
+  });
+
+  // Featured post is the first one marked as featured
+  const featuredPost = blogPosts.find(post => post.featured);
+  const regularPosts = filteredPosts.filter(post => !post.featured);
+
+  return (
+    <>
+      <Head>
+        <title>{pageTitle}</title>
+        <meta name="description" content={pageDescription} />
+        <meta name="keywords" content="fitness, wellness, health, exercise, nutrition, mindfulness" />
+        <link rel="canonical" href={canonicalUrl} />
+        <meta property="og:title" content={pageTitle} />
+        <meta property="og:description" content={pageDescription} />
+        <meta property="og:type" content="website" />
+        <meta property="og:url" content={canonicalUrl} />
+        <meta property="og:image" content="/images/blog/daily-compass.png" />
+        <meta name="twitter:card" content="summary_large_image" />
+        <meta name="twitter:title" content={pageTitle} />
+        <meta name="twitter:description" content={pageDescription} />
+        <meta name="twitter:image" content="/images/blog/daily-compass.png" />
+        <script type="application/ld+json">
+          {JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Blog",
+            "headline": pageTitle,
+            "description": pageDescription,
+            "url": canonicalUrl,
+            "image": "/images/blog/daily-compass.png",
+            "publisher": {
+              "@type": "Organization",
+              "name": "Ecogym",
+              "logo": {
+                "@type": "ImageObject",
+                "url": "/images/logo.png"
+              }
+            }
+          })}
+        </script>
+      </Head>
+
+      <main className="min-h-screen bg-gradient-to-b from-gray-50 to-white py-16" role="main">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Hero Section */}
+          <div className="text-center mb-16">
+            <h1 className="text-5xl font-bold text-gray-900 mb-6">
+              Ecogym Blog
+            </h1>
+            <p className="text-xl text-gray-600 max-w-2xl mx-auto">
+              Discover insights, tips, and inspiration for your fitness journey. 
+              Expert advice to enhance your physical and mental well-being.
+            </p>
+          </div>
+
+          {/* Search and Filter Section */}
+          <div className="mb-12">
+            <div className="flex flex-col md:flex-row gap-6 items-center justify-between">
+              <div className="relative w-full md:w-96">
+                <input
+                  type="text"
+                  placeholder="Search articles..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="w-full pl-12 pr-4 py-3 rounded-lg border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-colors"
+                />
+                <svg
+                  className="absolute left-4 top-3.5 h-5 w-5 text-gray-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                  />
+                </svg>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map(tag => (
+                  <button
+                    key={tag}
+                    onClick={() => {
+                      setSelectedTags(prev =>
+                        prev.includes(tag)
+                          ? prev.filter(t => t !== tag)
+                          : [...prev, tag]
+                      );
+                    }}
+                    className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+                      selectedTags.includes(tag)
+                        ? 'bg-[#4F46E5] text-white'
+                        : 'bg-[#EEF2FF] text-[#4F46E5] hover:bg-indigo-100'
+                    }`}
+                  >
+                    {tag}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Featured Post */}
+          {featuredPost && !searchTerm && selectedTags.length === 0 && (
+            <div className="mb-16">
+              <h2 className="text-4xl font-bold text-gray-900 mb-8">Featured Article</h2>
+              <div className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-xl transition-all duration-300">
+                <div className="relative aspect-[16/9]">
+                  <Image
+                    src={featuredPost.image}
+                    alt={featuredPost.title}
+                    fill
+                    className="object-cover"
+                    priority
+                    quality={90}
+                  />
+                </div>
+                <div className="p-8">
+                  <div className="flex gap-4 mb-6">
+                    {featuredPost.tags.map(tag => (
+                      <span 
+                        key={tag} 
+                        className="bg-[#EEF2FF] text-[#4F46E5] px-4 py-1.5 rounded-full text-sm font-medium"
+                      >
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                  <div className="max-w-3xl">
+                    <h3 className="text-2xl font-bold text-gray-900 mb-4">
+                      {featuredPost.title}
+                    </h3>
+                    <p className="text-gray-600 mb-6 line-clamp-2">
+                      {featuredPost.content.replace(/<[^>]*>/g, '').slice(0, 200)}...
+                    </p>
+                    <div className="flex items-center gap-8 text-base text-gray-500 mb-6">
+                        <span className="flex items-center">
+                          <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                          </svg>
+                          {featuredPost.author}
+                        </span>
+                        <span className="flex items-center">
+                          <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          {calculateReadingTime(featuredPost.content)} min read
+                        </span>
+                        <time dateTime={featuredPost.date} className="flex items-center">
+                          <svg className="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                          </svg>
+                          {new Date(featuredPost.date).toLocaleDateString('en-US', {
+                            month: 'short',
+                            day: 'numeric',
+                            year: 'numeric'
+                          })}
+                        </time>
+                    </div>
+                    <Link
+                      href={`/blog/${featuredPost.slug}`}
+                      className="inline-flex items-center text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      Read Article
+                      <svg className="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                      </svg>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Regular Posts Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {blogPosts.map(post => (
-              <BlogPost key={post.id} post={post} />
+            {regularPosts.map(post => (
+              <BlogPost key={post.slug} post={post} />
             ))}
           </div>
+
+          {/* No Results Message */}
+          {filteredPosts.length === 0 && (
+            <div className="text-center py-12">
+              <h3 className="text-xl font-medium text-gray-900 mb-2">No articles found</h3>
+              <p className="text-gray-600">
+                Try adjusting your search or filter criteria
+              </p>
+            </div>
+          )}
         </div>
-      </div>
-    );
-  };
-  
-  export default BlogContent;
+      </main>
+    </>
+  );
+}

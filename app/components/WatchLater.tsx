@@ -1,10 +1,9 @@
-// app/components/WatchLater.tsx
 'use client';
 
 import { useState } from 'react';
 import { FaClock } from 'react-icons/fa';
 
-import { Program } from '../types';
+import { Program, toString } from '../types';
 import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import { toggleWatchLater } from '../utils/api';
@@ -18,10 +17,10 @@ const WatchLater: React.FC<WatchLaterProps> = ({ programs: initialPrograms }) =>
   const [watchLaterPrograms, setWatchLaterPrograms] = useState<Program[]>(initialPrograms);
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
-  const handleToggleWatchLater = async (programId: string) => {
+  const handleToggleWatchLater = async (programId: string | number) => {
     try {
-      await toggleWatchLater(parseInt(programId, 10));
-      setWatchLaterPrograms(watchLaterPrograms.filter(program => program.id !== programId));
+      await toggleWatchLater(parseInt(toString(programId), 10));
+      setWatchLaterPrograms(watchLaterPrograms.filter(program => toString(program.id) !== toString(programId)));
     } catch (error) {
       logger.error('Error toggling watch later', { error });
     }
@@ -66,12 +65,12 @@ const WatchLater: React.FC<WatchLaterProps> = ({ programs: initialPrograms }) =>
               program={program}
               isFeatured={false}
               onExplore={(id) => {
-                const prog = watchLaterPrograms.find(p => p.id === id);
+                const prog = watchLaterPrograms.find(p => toString(p.id) === toString(id));
                 if (prog) handleExplore(prog);
               }}
               isPurchased={false}
               isAuthenticated={true}
-              onQuickAddToFavorites={() => handleToggleWatchLater(program.id)}
+              onQuickAddToFavorites={() => handleToggleWatchLater(toString(program.id))}
               onSignIn={() => {}}
             />
           ))}

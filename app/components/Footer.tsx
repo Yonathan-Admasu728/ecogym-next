@@ -1,7 +1,11 @@
 import Image from 'next/image';
 import Link from 'next/link';
 
-const Footer = (): JSX.Element => {
+interface FooterProps {
+  className?: string;
+}
+
+const Footer = ({ className = '' }: FooterProps): JSX.Element => {
   const socialLinks = [
     { name: 'Instagram', url: 'https://instagram.com/ecogym', icon: '📸' },
     { name: 'Bluesky', url: 'https://Bluesky.com/ecogym', icon: '🦋' },
@@ -9,7 +13,7 @@ const Footer = (): JSX.Element => {
   ];
 
   return (
-    <footer className="relative bg-gray-900 text-gray-300 py-10">
+    <footer className={`relative bg-[#0B1120] text-gray-300 py-10 border-t border-white/5 ${className}`}>
       <div className="absolute inset-0 opacity-5">
         {/* Optional background pattern, can remove if you want a cleaner look */}
         <Image 

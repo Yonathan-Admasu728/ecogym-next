@@ -5,6 +5,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import { FaPlay, FaPause, FaExpand, FaCompress, FaLock } from "react-icons/fa";
 
 import { Session, Program } from "../types";
+import { isSessionFree } from '../types/program';
 import { logger } from '../utils/logger';
 
 interface PlaybackModalProps {
@@ -84,7 +85,7 @@ const PlaybackModal: React.FC<PlaybackModalProps> = ({
   }, [isOpen, handleTimeUpdate, handleLoadedMetadata, handleVideoError]);
 
   const togglePlay = () => {
-    if (!isPurchased) {
+    if (!isPurchased && !isSessionFree(program, session)) {
       onPurchase();
       return;
     }
@@ -105,7 +106,7 @@ const PlaybackModal: React.FC<PlaybackModalProps> = ({
   };
 
   const handleSeek = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (!isPurchased) {
+    if (!isPurchased && !isSessionFree(program, session)) {
       onPurchase();
       return;
     }
@@ -123,7 +124,7 @@ const PlaybackModal: React.FC<PlaybackModalProps> = ({
   };
 
   const toggleFullscreen = () => {
-    if (!isPurchased) {
+    if (!isPurchased && !isSessionFree(program, session)) {
       onPurchase();
       return;
     }
@@ -148,6 +149,10 @@ const PlaybackModal: React.FC<PlaybackModalProps> = ({
     return `${minutes}:${seconds.toString().padStart(2, '0')}`;
   };
 
+  const defaultThumbnail = '/images/fallback.png';
+  const videoUrl = session.video_url || '';
+  const thumbnailUrl = session.thumbnail || defaultThumbnail;
+
   return (
     <Dialog
       open={isOpen}
@@ -166,8 +171,8 @@ const PlaybackModal: React.FC<PlaybackModalProps> = ({
             <video
               id="video-player"
               className="w-full h-full"
-              src={session.video_url}
-              poster={session.thumbnail}
+              src={videoUrl}
+              poster={thumbnailUrl}
               aria-label={`Video player for ${session.title}`}
             >
               Your browser does not support the video tag.
@@ -215,7 +220,7 @@ const PlaybackModal: React.FC<PlaybackModalProps> = ({
               </div>
             </div>
 
-            {!isPurchased && (
+            {!isPurchased && !isSessionFree(program, session) && (
               <div className="absolute inset-0 bg-darkBlue-900/80 backdrop-blur-sm flex items-center justify-center">
                 <button
                   onClick={onPurchase}

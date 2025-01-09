@@ -9,13 +9,25 @@ import ComingSoonCarousel from './ComingSoonCarousel';
 const ComingSoonPrograms: React.FC = () => {
   return (
     <section 
-      className="py-24 bg-gradient-to-b from-darkBlue-800 to-darkBlue-900 relative overflow-hidden"
-      style={{
-        backgroundImage: "url('/images/pattern.svg')",
-        backgroundBlendMode: 'soft-light',
-        backgroundSize: '200px',
-      }}
+      className="py-24 bg-[#0B1120] relative overflow-hidden"
     >
+      {/* Ambient background gradients */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute -inset-[10px] opacity-50">
+          <div className="absolute top-0 -left-40 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob"></div>
+          <div className="absolute top-0 -right-40 w-96 h-96 bg-cyan-400 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-2000"></div>
+          <div className="absolute -bottom-40 left-20 w-96 h-96 bg-teal-500 rounded-full mix-blend-multiply filter blur-3xl opacity-10 animate-blob animation-delay-4000"></div>
+        </div>
+      </div>
+
+      {/* Subtle pattern overlay */}
+      <div 
+        className="fixed inset-0 opacity-[0.02] pointer-events-none"
+        style={{
+          backgroundImage: `url("/images/pattern.svg")`,
+          backgroundSize: '24px',
+        }}
+      />
       <div className="container mx-auto px-4 relative z-10">
         <motion.div 
           className="text-center mb-16"

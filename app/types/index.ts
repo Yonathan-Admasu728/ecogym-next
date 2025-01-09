@@ -2,7 +2,7 @@ import { User as FirebaseUser } from 'firebase/auth';
 
 // Program Types
 export interface Trainer {
-  id: string;
+  id: number | string;
   profile_picture?: string;
   user?: {
     first_name?: string;
@@ -22,11 +22,12 @@ export interface SessionProgress {
 export interface Session {
   id: string;
   title: string;
+  tagline?: string;
   description: string;
   duration: string;
   duration_seconds: number;
-  video_url?: string;
-  thumbnail?: string;
+  video_url?: string | null;
+  thumbnail?: string | null;
   order: number;
   difficulty_level: number;
   prerequisites?: string[];
@@ -34,6 +35,7 @@ export interface Session {
   key_learnings?: string[];
   progress?: SessionProgress;
   is_preview?: boolean;
+  is_free?: boolean; // Indicates if this session is free
 }
 
 export interface ProgramProgress {
@@ -47,27 +49,31 @@ export interface ProgramProgress {
 }
 
 export interface Program {
-  id: string;
+  id: number | string;
   title: string;
+  tagline?: string;
   description: string;
+  full_description?: string;
   detailed_description?: string;
   thumbnail: string;
   thumbnailUrl?: string;
   duration: string;
-  total_sessions: number;
+  sessions: Session[];
+  total_sessions?: number;
   level: 'Beginner' | 'Intermediate' | 'Advanced' | 'All Levels';
-  category: string;
+  category: 'workout' | 'meditation' | 'Loading...';
+  category_display?: string;
   subcategories?: string[];
   trainer?: Trainer;
   average_rating?: number;
   review_count?: number;
-  ecoImpact?: string;
-  price?: number;
+  price?: number | string;
   stripe_price_id?: string;
-  isFree: boolean;
-  sessions: Session[];
+  is_free: boolean;
+  isFree?: boolean; // Alias for is_free for backward compatibility
   progress?: ProgramProgress;
-  program_type: 'single_session' | 'multi_session_linear' | 'multi_session_flexible';
+  program_type?: 'single_session' | 'multi_session_linear' | 'multi_session_flexible';
+  freeSessionCount?: number;
   estimated_completion_days?: number;
   recommended_schedule?: {
     sessions_per_week: number;
@@ -85,6 +91,15 @@ export interface Program {
     has_trainer_qa?: boolean;
     has_progress_sharing?: boolean;
   };
+  is_featured?: boolean;
+  featured_order?: number;
+  is_recommended?: boolean;
+  purchased_by_user?: boolean;
+  promotional_access?: boolean;
+  tags?: string;
+  created_at?: string;
+  updated_at?: string;
+  preview_video_url?: string | null;
 }
 
 // Component Props Types
@@ -93,8 +108,8 @@ export interface ProgramCardProps {
   isFeatured: boolean;
   isAuthenticated: boolean;
   isPurchased: boolean;
-  onExplore: (programId: string) => void;
-  onQuickAddToFavorites: (programId: string) => void;
+  onExplore: (programId: string | number) => void;
+  onQuickAddToFavorites: (programId: string | number) => void;
   onSignIn: () => void;
 }
 
@@ -167,3 +182,7 @@ export interface SchemaOrg {
   "@type": string;
   [key: string]: unknown;
 }
+
+// Helper functions
+export const toString = (id: string | number): string => id.toString();
+export const toNumber = (id: string | number): number => typeof id === 'string' ? parseInt(id, 10) : id;

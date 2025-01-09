@@ -4,10 +4,12 @@ import { motion, Variants } from 'framer-motion';
 import React from 'react';
 import { FaPlay, FaLock, FaClock, FaSignal } from 'react-icons/fa';
 
-import type { Session } from '../types';
+import type { Program, Session } from '../types';
+import { isSessionFree } from '../types/program';
 import { logger } from '../utils/logger';
 
 interface SessionListProps {
+  program: Program;
   sessions: Session[];
   onPlaySession: (session: Session) => void;
   isPurchased: boolean;
@@ -45,6 +47,7 @@ const item: Variants = {
 };
 
 const SessionList: React.FC<SessionListProps> = ({
+  program,
   sessions,
   onPlaySession,
   isPurchased,
@@ -64,7 +67,7 @@ const SessionList: React.FC<SessionListProps> = ({
   };
 
   const getButtonState = (session: Session): ButtonState => {
-    const isAccessible = isPurchased || session.is_preview;
+    const isAccessible = isPurchased || session.is_preview || isSessionFree(program, session);
 
     return {
       icon: isAccessible ? FaPlay : FaLock,
@@ -144,7 +147,7 @@ const SessionList: React.FC<SessionListProps> = ({
               </motion.button>
             </div>
 
-            {!isPurchased && !session.is_preview && (
+            {!isPurchased && !session.is_preview && !isSessionFree(program, session) && (
               <motion.div 
                 className="mt-4 pt-4 border-t border-turquoise-400/20"
                 initial={{ opacity: 0 }}
@@ -153,7 +156,9 @@ const SessionList: React.FC<SessionListProps> = ({
               >
                 <p className="text-sm text-lightBlue-200">
                   <FaLock className="inline-block w-4 h-4 mr-2 text-turquoise-400" aria-hidden="true" />
-                  Purchase the program to unlock this session
+                  {session.order <= (program.freeSessionCount ?? 1) 
+                    ? 'This session will be free after signing in'
+                    : 'Purchase the program to unlock this session'}
                 </p>
               </motion.div>
             )}

@@ -6,6 +6,8 @@ export { default as CallToAction } from './CallToAction';
 export { default as Footer } from './Footer';
 export { default as CategoryIcons } from './CategoryIcons';
 export { default as ProgramCard } from './ProgramCard';
+export { default as ProgressiveImage } from './ProgressiveImage';
+export { default as VirtualizedProgramList } from './VirtualizedProgramList';
 export { default as Modal } from './Modal';
 export { default as SignInModal } from './SignInModal';
 export { default as PurchaseStatus } from './PurchaseStatus';

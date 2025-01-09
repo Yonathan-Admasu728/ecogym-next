@@ -8,6 +8,7 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { PaymentService } from '../services/PaymentService';
 import type { Program } from '../types';
+import { toString } from '../types';
 import SignInModal from './SignInModal';
 import { logger } from '../utils/logger';
 
@@ -41,11 +42,11 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }): JSX.Element => {
     }
 
     try {
-      const purchaseStatus = await PaymentService.checkPurchaseStatus(item.id);
+      const purchaseStatus = await PaymentService.checkPurchaseStatus(toString(item.id));
       if (purchaseStatus.isPurchased) {
-        router.push(`/programs/${item.id}/sessions/access`);
+        router.push(`/programs/${toString(item.id)}/sessions/access`);
       } else {
-        router.push(`/programs/${item.id}`);
+        router.push(`/programs/${toString(item.id)}`);
       }
     } catch (error) {
       logger.error('Failed to check program purchase status', {
@@ -55,13 +56,13 @@ const Modal: React.FC<ModalProps> = ({ item, onClose }): JSX.Element => {
       });
       
       // Redirect to program detail page on error
-      router.push(`/programs/${item.id}`);
+      router.push(`/programs/${toString(item.id)}`);
     }
   };
 
   const handleSignInSuccess = (): void => {
     setIsSignInModalOpen(false);
-    router.push(`/programs/${item.id}/sessions/access`);
+    router.push(`/programs/${toString(item.id)}/sessions/access`);
   };
 
   const getTrainerName = (): string => {

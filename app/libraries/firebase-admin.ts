@@ -39,15 +39,34 @@ function validateConfig(): FirebaseAdminConfig {
   // Handle private key formatting
   let formattedPrivateKey = privateKey;
   
+  // Log original key for debugging
+  logger.debug('Original private key', {
+    length: privateKey.length,
+    hasQuotes: privateKey.startsWith('"') && privateKey.endsWith('"'),
+    hasNewlines: privateKey.includes('\n'),
+    hasEscapedNewlines: privateKey.includes('\\n'),
+  });
+  
   // Remove quotes if present
   if (formattedPrivateKey.startsWith('"') && formattedPrivateKey.endsWith('"')) {
     formattedPrivateKey = formattedPrivateKey.slice(1, -1);
   }
   
-  // Replace literal \n with newlines if needed
-  if (formattedPrivateKey.includes('\\n')) {
+  // If the key doesn't have actual newlines but has \n, replace them
+  if (!formattedPrivateKey.includes('\n') && formattedPrivateKey.includes('\\n')) {
     formattedPrivateKey = formattedPrivateKey.replace(/\\n/g, '\n');
   }
+  
+  // If the key has actual newlines, use them as is
+  // This handles the case where the key in .env.local has real newlines
+  
+  // Log formatted key for debugging
+  logger.debug('Formatted private key', {
+    length: formattedPrivateKey.length,
+    hasPemHeaders: formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----') && 
+                   formattedPrivateKey.includes('-----END PRIVATE KEY-----'),
+    hasNewlines: formattedPrivateKey.includes('\n'),
+  });
   
   // Ensure the key has the correct format
   if (!formattedPrivateKey.includes('-----BEGIN PRIVATE KEY-----') || 
@@ -67,7 +86,13 @@ function validateConfig(): FirebaseAdminConfig {
 }
 
 // Initialize Firebase Admin
+logger.debug('Checking Firebase Admin initialization', {
+  appsLength: admin.apps.length,
+  apps: admin.apps.map(app => app?.name || 'null')
+});
+
 if (!admin.apps.length) {
+  logger.debug('Initializing Firebase Admin');
   try {
     const config = validateConfig();
 

@@ -1,4 +1,5 @@
 import { Program } from '../types';
+import { logger } from './logger';
 
 export interface ComingSoonProgram extends Program {
   exclusivePerks: {
@@ -20,7 +21,7 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
     thumbnail: '/images/hiit.png',
     duration: '45 mins',
     level: 'Advanced',
-    category: 'Workout',
+    category: 'workout',
     trainer: {
       id: 'trainer-1',
       profile_picture: '/images/trainer-michael.png',
@@ -32,6 +33,7 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
       specialties: ['HIIT', 'Strength Training', 'Cardio']
     },
     isFree: false,
+    is_free: false,
     sessions: [],
     program_type: 'multi_session_linear',
     total_sessions: 12,
@@ -54,7 +56,7 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
     thumbnail: '/images/med2.png',
     duration: '60 mins',
     level: 'Intermediate',
-    category: 'Yoga',
+    category: 'meditation',
     trainer: {
       id: 'trainer-2',
       profile_picture: '/images/trainer-sarah.png',
@@ -66,6 +68,7 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
       specialties: ['Yoga', 'Meditation', 'Mindfulness']
     },
     isFree: false,
+    is_free: false,
     sessions: [],
     program_type: 'multi_session_flexible',
     total_sessions: 8,
@@ -88,7 +91,7 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
     thumbnail: '/images/pilates.png',
     duration: '50 mins',
     level: 'Intermediate',
-    category: 'Pilates',
+    category: 'workout',
     trainer: {
       id: 'trainer-3',
       profile_picture: '/images/trainer-emily.png',
@@ -100,6 +103,7 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
       specialties: ['Pilates', 'Core Training', 'Flexibility']
     },
     isFree: false,
+    is_free: false,
     sessions: [],
     program_type: 'multi_session_linear',
     total_sessions: 10,
@@ -116,3 +120,14 @@ export const comingSoonPrograms: ComingSoonProgram[] = [
     ]
   }
 ];
+
+// Log the coming soon programs for debugging
+logger.debug('Coming soon programs initialized', {
+  count: comingSoonPrograms.length,
+  programs: comingSoonPrograms.map(p => ({
+    id: p.id,
+    title: p.title,
+    category: p.category,
+    is_free: p.is_free
+  }))
+});

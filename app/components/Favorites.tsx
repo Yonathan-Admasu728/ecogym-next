@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { FaHeart } from 'react-icons/fa';
 
-import { Program } from '../types';
+import { Program, toString } from '../types';
 import ProgramCard from './ProgramCard';
 import ProgramDetail from './ProgramDetail';
 import { toggleFavorite } from '../utils/api';
@@ -20,10 +20,11 @@ const Favorites: React.FC<FavoritesProps> = ({ programs: initialPrograms }) => {
   const [selectedProgram, setSelectedProgram] = useState<Program | null>(null);
 
   const { user } = useAuth();
-  const handleToggleFavorite = async (programId: string) => {
+  const handleToggleFavorite = async (programId: string | number) => {
     try {
-      await toggleFavorite(Number(programId));
-      setFavorites(favorites.filter(program => program.id !== programId));
+      await toggleFavorite(typeof programId === 'string' ? Number(programId) : programId);
+      const idToRemove = toString(programId);
+      setFavorites(favorites.filter(program => toString(program.id) !== idToRemove));
     } catch (error) {
       logger.error('Error toggling favorite', { error });
     }
@@ -74,7 +75,7 @@ const Favorites: React.FC<FavoritesProps> = ({ programs: initialPrograms }) => {
               isFeatured={false}
               isAuthenticated={!!user}
               onExplore={handleExplore}
-              onQuickAddToFavorites={() => handleToggleFavorite(program.id)}
+              onQuickAddToFavorites={() => handleToggleFavorite(toString(program.id))}
               onSignIn={() => {}} // No-op since we're already authenticated
               isPurchased={false}  // Default to false since we don't have this info
             />

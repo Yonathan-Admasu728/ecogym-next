@@ -1,54 +1,78 @@
-/* eslint-disable no-console */
-type LogLevel = 'info' | 'warn' | 'error' | 'debug';
+type LogLevel = 'debug' | 'info' | 'warn' | 'error';
+
+type Loggable = Record<string, unknown> | Error | string | number | boolean | null | undefined | unknown;
 
 interface LogMessage {
-  message: string;
-  data?: unknown;
   timestamp: string;
   level: LogLevel;
+  message: string;
+  data?: Loggable;
+}
+
+function isLoggable(data: unknown): data is Loggable {
+  const type = typeof data;
+  return (
+    data === null ||
+    data === undefined ||
+    type === 'string' ||
+    type === 'number' ||
+    type === 'boolean' ||
+    data instanceof Error ||
+    (type === 'object' && !Array.isArray(data))
+  );
 }
 
 class Logger {
   private isDevelopment = process.env.NODE_ENV === 'development';
 
   private formatMessage(level: LogLevel, message: string, data?: unknown): LogMessage {
-    return {
-      message,
-      data,
-      timestamp: new Date().toISOString(),
-      level,
-    };
-  }
-
-  private log(level: LogLevel, message: string, data?: unknown) {
-    const logMessage = this.formatMessage(level, message, data);
-
-    // In development, log to console with appropriate styling
-    if (this.isDevelopment) {
-      const styles = {
-        info: 'color: #00bcd4',
-        warn: 'color: #ff9800',
-        error: 'color: #f44336',
-        debug: 'color: #9c27b0',
-      };
-
-      console[level](
-        `%c[${logMessage.level.toUpperCase()}] ${logMessage.timestamp}`,
-        styles[level],
-        '\n',
-        logMessage.message,
-        logMessage.data ? '\n' : '',
-        logMessage.data || ''
-      );
-    } else {
-      // In production, we might want to send logs to a service
-      // For now, only log errors to console in production
-      if (level === 'error') {
-        console.error(logMessage);
+    let formattedData: Loggable | undefined;
+    
+    if (data !== undefined && data !== null) {
+      if (isLoggable(data)) {
+        formattedData = data;
+      } else if (typeof data === 'object') {
+        formattedData = JSON.parse(JSON.stringify(data));
+      } else {
+        formattedData = String(data);
       }
     }
 
-    // Here you could add logic to send logs to a service like Sentry, LogRocket, etc.
+    return {
+      timestamp: new Date().toISOString(),
+      level,
+      message,
+      data: formattedData,
+    };
+  }
+
+  private log(level: LogLevel, message: string, data?: unknown): void {
+    const formattedMessage = this.formatMessage(level, message, data);
+
+    if (this.isDevelopment) {
+      const consoleMethod = level === 'error' ? 'error' : 
+                          level === 'warn' ? 'warn' : 
+                          level === 'info' ? 'info' : 'debug';
+
+      // eslint-disable-next-line no-console
+      console[consoleMethod](
+        `[${level.toUpperCase()}] ${formattedMessage.timestamp}\n`,
+        message,
+        data ? '\n' : '',
+        data || ''
+      );
+    }
+
+    // In production, you might want to send logs to a service
+    if (!this.isDevelopment && (level === 'error' || level === 'warn')) {
+      // TODO: Implement production logging service
+      // e.g., send to Sentry, LogRocket, etc.
+    }
+  }
+
+  debug(message: string, data?: unknown) {
+    // Always show debug logs
+    this.log('debug', message, data);
   }
 
   info(message: string, data?: unknown) {
@@ -59,14 +83,8 @@ class Logger {
     this.log('warn', message, data);
   }
 
-  error(message: string, error?: Error | unknown) {
+  error(message: string, error?: unknown) {
     this.log('error', message, error);
-  }
-
-  debug(message: string, data?: unknown) {
-    if (this.isDevelopment) {
-      this.log('debug', message, data);
-    }
   }
 }
 

@@ -29,6 +29,7 @@ interface AuthContextType {
 interface MockUser {
   email: string;
   uid: string;
+  getIdToken: () => Promise<string>;
 }
 
 interface MockAuthResult {
@@ -41,15 +42,33 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 const mockAuthFunctions = {
   async signInWithEmail(email: string, _password: string): Promise<MockAuthResult> {
     logger.info('Mock sign in', { email });
-    return { user: { email, uid: 'mock-uid' } };
+    return {
+      user: {
+        email,
+        uid: 'mock-uid',
+        getIdToken: async () => 'mock-token'
+      }
+    };
   },
   async signUpWithEmail(email: string, _password: string): Promise<MockAuthResult> {
     logger.info('Mock sign up', { email });
-    return { user: { email, uid: 'mock-uid' } };
+    return {
+      user: {
+        email,
+        uid: 'mock-uid',
+        getIdToken: async () => 'mock-token'
+      }
+    };
   },
   async signInWithGoogle(): Promise<MockAuthResult> {
     logger.info('Mock Google sign in');
-    return { user: { email: 'mock@google.com', uid: 'mock-google-uid' } };
+    return {
+      user: {
+        email: 'mock@google.com',
+        uid: 'mock-google-uid',
+        getIdToken: async () => 'mock-token'
+      }
+    };
   },
   async signOut(): Promise<void> {
     logger.info('Mock sign out');
@@ -103,9 +122,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
             axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
             
             // Sync with Django backend
-            await axiosInstance.post('/firebase/auth/', { token });
+            await axiosInstance.post('/auth/', { token });
+            logger.debug('Auth sync successful', { token: '[REDACTED]' });
           } catch (error) {
-            logger.error('Failed to sync with backend', error);
+            logger.error('Failed to sync with backend', {
+              error: error instanceof Error ? error.message : 'Unknown error',
+              stack: error instanceof Error ? error.stack : undefined
+            });
+            // Set authorization header even if sync fails
+            if (user) {
+              const token = await user.getIdToken();
+              axiosInstance.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+            }
           }
         } else {
           // Clear axios headers when user logs out
@@ -127,11 +155,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
         window.removeEventListener('auth-error', authErrorHandler as EventListener);
       };
     } else {
-      // In development without Firebase config, just set loading to false
+      // In development without Firebase config, create a mock user
+      if (isDevelopment) {
+        const mockUser = {
+          email: 'dev@example.com',
+          uid: 'mock-uid',
+          getIdToken: async () => 'mock-token'
+        };
+        setUser(mockUser as unknown as User);
+        // Set mock token in headers
+        axiosInstance.defaults.headers.common['Authorization'] = 'Bearer mock-token';
+      }
       setLoading(false);
       return unsubscribe;
     }
-  }, [signOut]);
+  }, [signOut, isDevelopment]);
 
   const signInWithEmail = async (email: string, password: string): Promise<void> => {
     try {
@@ -146,8 +184,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
 
       const result = await signInWithEmailAndPassword(auth, email, password);
       setUser(result.user);
-      const token = await result.user.getIdToken();
-      await axiosInstance.post('/firebase/auth/', { token });
+      try {
+        const token = await result.user.getIdToken();
+        await axiosInstance.post('/auth/', { token });
+        logger.debug('Auth sync successful after email sign in');
+      } catch (syncError) {
+        logger.error('Auth sync failed after email sign in', {
+          error: syncError instanceof Error ? syncError.message : 'Unknown error'
+        });
+        // Continue even if sync fails, as we still have a valid token
+      }
     } catch (error) {
       logger.error('Sign in failed', error);
       throw error;
@@ -167,8 +213,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
 
       const result = await createUserWithEmailAndPassword(auth, email, password);
       setUser(result.user);
-      const token = await result.user.getIdToken();
-      await axiosInstance.post('/firebase/auth/', { token });
+      try {
+        const token = await result.user.getIdToken();
+        await axiosInstance.post('/auth/', { token });
+        logger.debug('Auth sync successful after sign up');
+      } catch (syncError) {
+        logger.error('Auth sync failed after sign up', {
+          error: syncError instanceof Error ? syncError.message : 'Unknown error'
+        });
+        // Continue even if sync fails, as we still have a valid token
+      }
     } catch (error) {
       logger.error('Sign up failed', error);
       throw error;
@@ -197,8 +251,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
       
       if (result) {
         setUser(result.user);
-        const token = await result.user.getIdToken();
-        await axiosInstance.post('/firebase/auth/', { token });
+        try {
+          const token = await result.user.getIdToken();
+          await axiosInstance.post('/auth/', { token });
+          logger.debug('Auth sync successful after Google sign in');
+        } catch (syncError) {
+          logger.error('Auth sync failed after Google sign in', {
+            error: syncError instanceof Error ? syncError.message : 'Unknown error'
+          });
+          // Continue even if sync fails, as we still have a valid token
+        }
       }
     } catch (error) {
       logger.error('Google sign in failed', error);
@@ -209,6 +271,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }): JSX.E
   const getToken = async (): Promise<string | null> => {
     if (!user) return null;
     try {
+      if (isDevelopment) {
+        return 'mock-token';
+      }
       return await user.getIdToken(true);
     } catch (error) {
       logger.error('Failed to get token', error);

@@ -57,31 +57,53 @@ const FeaturedPrograms: React.FC<FeaturedProgramsProps> = ({ programs = [] }) =>
 
   return (
     <section 
-      className="py-24 bg-gradient-to-b from-darkBlue-800 to-darkBlue-900 relative overflow-hidden" 
+      className="py-16 sm:py-20 lg:py-24 bg-[#0B1120] relative overflow-hidden" 
       id="featured-programs"
-      style={{
-        backgroundImage: "url('/images/pattern.svg')",
-        backgroundBlendMode: 'soft-light',
-        backgroundSize: '200px',
-      }}
     >
+      {/* Enhanced ambient background with more dynamic gradients */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute inset-0">
+          <div className="absolute top-0 -left-40 w-[30rem] h-[30rem] bg-blue-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse"></div>
+          <div className="absolute top-1/4 -right-40 w-[35rem] h-[35rem] bg-cyan-400/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-2000"></div>
+          <div className="absolute -bottom-40 left-20 w-[40rem] h-[40rem] bg-teal-500/20 rounded-full mix-blend-multiply filter blur-3xl opacity-20 animate-pulse animation-delay-4000"></div>
+          <div className="absolute bg-gradient-to-br from-darkBlue-900/50 to-transparent w-full h-full backdrop-blur-[2px]"></div>
+        </div>
+      </div>
+
       <div className="container mx-auto px-4 relative z-10">
         <motion.div 
-          className="text-center mb-16"
+          className="text-center mb-16 sm:mb-20"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h2 className="text-5xl font-bold text-white mb-6 font-heading">
+          <motion.h2 
+            className="text-4xl sm:text-5xl lg:text-6xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-white to-white/80 mb-6 font-heading tracking-tight"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+          >
             Featured Programs
-          </h2>
-          <div className="flex items-center justify-center text-turquoise-400 mb-8">
-            <FaLeaf className="w-8 h-8 mr-3" />
-            <span className="text-xl">Discover Your Path to Wellness</span>
-          </div>
-          <p className="text-lightBlue-100 max-w-2xl mx-auto text-lg leading-relaxed">
+          </motion.h2>
+          <motion.div 
+            className="flex items-center justify-center text-turquoise-400 mb-8"
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+          >
+            <FaLeaf className="w-6 h-6 sm:w-8 sm:h-8 mr-3 animate-pulse" />
+            <span className="text-lg sm:text-xl bg-gradient-to-r from-turquoise-400 to-turquoise-300 bg-clip-text text-transparent font-medium">
+              Discover Your Path to Wellness
+            </span>
+          </motion.div>
+          <motion.p 
+            className="text-lightBlue-100/90 max-w-3xl mx-auto text-base sm:text-lg leading-relaxed"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.3 }}
+          >
             Explore our curated selection of mindfulness practices, guided meditations, and effective home workouts designed to transform your mind and body.
-          </p>
+          </motion.p>
         </motion.div>
 
         <motion.div

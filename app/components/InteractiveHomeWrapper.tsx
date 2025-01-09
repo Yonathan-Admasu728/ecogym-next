@@ -8,6 +8,7 @@ import { logger } from '../utils/logger';
 import { Program } from '../types';
 
 import HeroSection from './HeroSection';
+import DailyCompass from './DailyCompass';
 import ContinueWatching from './ContinueWatching';
 import ComingSoonPrograms from './ComingSoonPrograms';
 import ProgramList from './ProgramList';
@@ -18,7 +19,9 @@ interface InteractiveHomeWrapperProps {
   featuredPrograms: Program[];
 }
 
-const InteractiveHomeWrapper = ({ featuredPrograms }: InteractiveHomeWrapperProps): JSX.Element => {
+const InteractiveHomeWrapper = ({ 
+  featuredPrograms 
+}: InteractiveHomeWrapperProps): JSX.Element => {
   const { user } = useAuth();
   const [isLoading, setIsLoading] = useState(true);
 
@@ -48,6 +51,22 @@ const InteractiveHomeWrapper = ({ featuredPrograms }: InteractiveHomeWrapperProp
   return (
     <div className="min-h-screen">
       <HeroSection />
+
+      {user && (
+        <section id="daily-compass" className="py-8 bg-darkBlue-900 scroll-mt-20">
+          <div className="container mx-auto px-4">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6 }}
+              className="max-w-4xl mx-auto"
+            >
+              <h2 className="text-2xl font-bold text-white mb-6 text-center">Daily Compass</h2>
+              <DailyCompass />
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       <section id="journey" className="relative py-12 md:py-16 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-darkBlue-900 to-darkBlue-800">
@@ -153,10 +172,23 @@ const InteractiveHomeWrapper = ({ featuredPrograms }: InteractiveHomeWrapperProp
         </section>
       )}
 
-      <section id="featured-programs" className="py-16 bg-darkBlue-900">
-        <div className="container mx-auto px-4">
+      <section id="featured-programs" className="py-24 bg-gradient-to-b from-darkBlue-800 to-darkBlue-900 relative overflow-hidden">
+        <div className="container mx-auto px-4 relative z-10 max-w-7xl">
+          <motion.div 
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+          >
+            <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-4 sm:mb-6 font-heading tracking-tight">
+              Featured Programs
+            </h2>
+            <p className="text-lightBlue-100 max-w-2xl mx-auto text-lg leading-relaxed">
+              Discover our carefully curated selection of transformative programs designed to enhance your mind-body wellness journey.
+            </p>
+          </motion.div>
           <ProgramList 
-            title="Featured Programs"
+            title=""
             programs={featuredPrograms}
           />
         </div>

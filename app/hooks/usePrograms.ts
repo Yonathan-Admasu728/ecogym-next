@@ -27,7 +27,7 @@ const defaultOptions: UseProgramsOptions = {
 };
 
 // Helper function to create a placeholder program with all required fields
-const createPlaceholderProgram = (id: string): Program => ({
+const createPlaceholderProgram = (id: string | number): Program => ({
   id,
   title: 'Loading...',
   description: 'Loading program details...',
@@ -38,6 +38,7 @@ const createPlaceholderProgram = (id: string): Program => ({
   total_sessions: 0,
   level: 'All Levels',
   category: 'Loading...',
+  is_free: false,
   isFree: false,
   sessions: [],
   program_type: 'single_session',
@@ -185,14 +186,14 @@ export function useUserPrograms(options: UseProgramsOptions = defaultOptions): U
 
   const addToFavorites = async (programId: string | number) => {
     const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
-    const program = favorites?.find(p => p.id === programId.toString());
+    const program = favorites?.find(p => p.id === programId);
     
     // Optimistic update with existing program data if available
     const optimisticData = [...(favorites || [])];
     if (program) {
       optimisticData.push(program);
     } else {
-      optimisticData.push(createPlaceholderProgram(programId.toString()));
+      optimisticData.push(createPlaceholderProgram(programId));
     }
     
     try {
@@ -210,7 +211,7 @@ export function useUserPrograms(options: UseProgramsOptions = defaultOptions): U
     const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
     
     // Optimistic update
-    const optimisticData = favorites?.filter(p => p.id !== programId.toString()) || [];
+    const optimisticData = favorites?.filter(p => p.id !== programId) || [];
     
     try {
       mutateFavorites(optimisticData, false);
@@ -225,14 +226,14 @@ export function useUserPrograms(options: UseProgramsOptions = defaultOptions): U
 
   const addToWatchLater = async (programId: string | number) => {
     const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
-    const program = watchLater?.find(p => p.id === programId.toString());
+    const program = watchLater?.find(p => p.id === programId);
     
     // Optimistic update with existing program data if available
     const optimisticData = [...(watchLater || [])];
     if (program) {
       optimisticData.push(program);
     } else {
-      optimisticData.push(createPlaceholderProgram(programId.toString()));
+      optimisticData.push(createPlaceholderProgram(programId));
     }
     
     try {
@@ -250,7 +251,7 @@ export function useUserPrograms(options: UseProgramsOptions = defaultOptions): U
     const numericId = typeof programId === 'string' ? parseInt(programId, 10) : programId;
     
     // Optimistic update
-    const optimisticData = watchLater?.filter(p => p.id !== programId.toString()) || [];
+    const optimisticData = watchLater?.filter(p => p.id !== programId) || [];
     
     try {
       mutateWatchLater(optimisticData, false);

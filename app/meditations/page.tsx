@@ -1,8 +1,9 @@
 // app/meditations/page.tsx
 
 import { Metadata } from 'next';
-import ProgramList from '../components/ProgramList';
+import MeditationsContent from './MeditationsContent';
 import { fetchProgramsByCategory } from '../utils/api';
+import { PROGRAM_CATEGORIES } from '../utils/programTransform';
 
 export const dynamic = 'force-dynamic';
 
@@ -26,12 +27,7 @@ export const metadata: Metadata = {
 };
 
 export default async function MeditationsPage(): Promise<JSX.Element> {
-  const programs = await fetchProgramsByCategory('Meditation');
+  const programs = await fetchProgramsByCategory(PROGRAM_CATEGORIES.MEDITATION);
   
-  return (
-    <ProgramList 
-      title="Meditation Programs" 
-      programs={programs}
-    />
-  );
+  return <MeditationsContent programs={programs} />;
 }

@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation';
 import React from 'react';
 import { FaHeart, FaClock, FaPlay, FaTimes } from 'react-icons/fa';
 
-import { Program } from '../types';
+import { Program, toString } from '../types';
 
 interface CollectionViewProps {
   isOpen: boolean;
@@ -94,7 +94,7 @@ const CollectionView: React.FC<CollectionViewProps> = ({
                       <motion.button
                         whileHover={{ scale: 1.1 }}
                         whileTap={{ scale: 0.9 }}
-                        onClick={() => router.push(`/programs/${program.id}`)}
+                        onClick={() => router.push(`/programs/${toString(program.id)}`)}
                         className="bg-turquoise-400 text-darkBlue-900 p-4 rounded-full shadow-lg"
                       >
                         <FaPlay />
@@ -113,7 +113,7 @@ const CollectionView: React.FC<CollectionViewProps> = ({
                     <motion.button
                       whileHover={{ scale: 1.05 }}
                       whileTap={{ scale: 0.95 }}
-                      onClick={() => onRemove(program.id)}
+                      onClick={() => onRemove(toString(program.id))}
                       className="w-full flex items-center justify-center space-x-2 bg-darkBlue-700 hover:bg-darkBlue-600 text-white py-2 px-4 rounded-lg transition-colors duration-200"
                     >
                       <FaTimes />

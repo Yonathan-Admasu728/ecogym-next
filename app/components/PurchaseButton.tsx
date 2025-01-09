@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { FaSpinner, FaLock, FaCheckCircle, FaUserCircle } from 'react-icons/fa';
+import { FaSpinner, FaLock, FaCheckCircle, FaUserCircle, FaPlay } from 'react-icons/fa';
 
 import { Program } from '../types';
+import { getFreeSessionCount } from '../types/program';
 
 interface PurchaseButtonProps {
   program: Program;
@@ -21,6 +22,17 @@ const PurchaseButton: React.FC<PurchaseButtonProps> = ({
   isProcessing = false,
 }) => {
   const getButtonContent = () => {
+    // Not authenticated
+    if (!isAuthenticated) {
+      return (
+        <>
+          <FaUserCircle className="h-5 w-5 mr-2" />
+          <span>Sign in to {program.isFree ? 'Start' : 'Purchase'}</span>
+        </>
+      );
+    }
+
+    // Processing state
     if (isProcessing) {
       return (
         <>
@@ -30,31 +42,48 @@ const PurchaseButton: React.FC<PurchaseButtonProps> = ({
       );
     }
 
+    // Already purchased
     if (isPurchased) {
       return (
         <>
           <FaCheckCircle className="h-5 w-5 mr-2" />
-          <span>Purchased</span>
+          <span>Continue Program</span>
         </>
       );
     }
 
-    if (!isAuthenticated) {
+    // Completely free program
+    if (program.isFree) {
       return (
         <>
-          <FaUserCircle className="h-5 w-5 mr-2" />
-          <span>Sign in to Purchase</span>
+          <FaPlay className="h-5 w-5 mr-2" />
+          <span>Start Free Program</span>
         </>
       );
     }
 
+    // Has free sessions
+    const freeCount = getFreeSessionCount(program);
+    if (freeCount > 0) {
+      const icon = program.program_type === 'single_session' ? FaPlay : FaCheckCircle;
+      const Icon = icon;
+      return (
+        <>
+          <Icon className="h-5 w-5 mr-2" />
+          <span>
+            {program.program_type === 'single_session' 
+              ? 'Start Free Session'
+              : `Start (${freeCount} Free Sessions)`}
+          </span>
+        </>
+      );
+    }
+
+    // Paid program
     return (
       <>
         <FaLock className="h-5 w-5 mr-2" />
-        <span>
-          Purchase for ${program.price}
-          {program.isFree && <span className="ml-1">(Free)</span>}
-        </span>
+        <span>Purchase for ${program.price}</span>
       </>
     );
   };
@@ -62,7 +91,7 @@ const PurchaseButton: React.FC<PurchaseButtonProps> = ({
   return (
     <button
       onClick={onPurchase}
-      disabled={isProcessing || isPurchased}
+      disabled={isProcessing || (isPurchased && !program.isFree)}
       aria-busy={isProcessing}
       aria-label={
         isProcessing 
@@ -79,13 +108,15 @@ const PurchaseButton: React.FC<PurchaseButtonProps> = ({
         transition-all duration-300 transform
         focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-darkBlue-900
         ${
-          isPurchased
+          program.isFree || getFreeSessionCount(program) > 0
+            ? 'bg-gradient-to-r from-green-500 to-green-400 text-white hover:from-green-400 hover:to-green-300'
+            : isPurchased
             ? 'bg-gradient-to-r from-green-500 to-green-400 text-white cursor-default'
             : isProcessing
             ? 'bg-gradient-to-r from-turquoise-400 to-turquoise-300 text-darkBlue-900 cursor-wait'
             : 'bg-gradient-to-r from-turquoise-500 to-turquoise-400 hover:from-turquoise-400 hover:to-turquoise-300 text-darkBlue-900 hover:-translate-y-0.5 active:translate-y-0'
         }
-        ${!isAuthenticated && 'hover:bg-turquoise-400'}
+        ${!isAuthenticated && !program.isFree && getFreeSessionCount(program) === 0 && 'hover:bg-turquoise-400'}
         disabled:opacity-75 disabled:cursor-not-allowed disabled:transform-none
         shadow-lg hover:shadow-xl
       `}
