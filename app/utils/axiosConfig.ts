@@ -1,28 +1,45 @@
-import axios, { 
-  AxiosError, 
+import axios, {
+  AxiosError,
   InternalAxiosRequestConfig,
   AxiosResponse,
-  AxiosHeaders
+  AxiosHeaders,
 } from 'axios';
+import Cookies from 'js-cookie';
 
 import { logger } from './logger';
 import { getIdToken } from '../libraries/firebase';
+
+function getCSRFToken(): string | undefined {
+  return Cookies.get('csrftoken');
+}
 
 interface ExtendedAxiosRequestConfig extends InternalAxiosRequestConfig {
   _retry?: boolean;
 }
 
 const axiosInstance = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000',
+  baseURL: process.env.NEXT_PUBLIC_API_URL,
   headers: {
     'Content-Type': 'application/json',
-    'Accept': 'application/json',
-    'Origin': 'http://localhost:3001'
+    Accept: 'application/json',
+    'X-Requested-With': 'XMLHttpRequest',
   },
   timeout: 30000, // 30 second timeout
   proxy: false, // Disable proxy to prevent IPv6 resolution
   family: 4, // Force IPv4
-  withCredentials: true // Important for CORS with credentials
+  withCredentials: true, // Important for CORS with credentials
+  responseType: 'json',
+  transformResponse: [(data) => {
+    // Try to parse string response as JSON
+    if (typeof data === 'string') {
+      try {
+        return JSON.parse(data);
+      } catch {
+        return data;
+      }
+    }
+    return data;
+  },]
 });
 
 // Request timing tracking
@@ -31,22 +48,36 @@ const pendingRequests = new Map<string, number>();
 // Request interceptor to add auth token and track timing
 axiosInstance.interceptors.request.use(
   async (config: InternalAxiosRequestConfig) => {
-    const requestId = Math.random().toString(36).substring(7);
-    pendingRequests.set(requestId, Date.now());
-
     // Initialize headers if they don't exist
     const headers = new AxiosHeaders(config.headers);
-    headers.set('X-Request-ID', requestId);
+    
+    // Only generate request ID if one doesn't exist
+    let requestId = headers.get('X-Request-ID') as string;
+    if (!requestId) {
+      requestId = Math.random().toString(36).substring(7);
+      headers.set('X-Request-ID', requestId);
+      pendingRequests.set(requestId, Date.now());
+    }
 
-    // Only add token on client side
+    // Only add tokens and origin on client side
     if (typeof window !== 'undefined') {
       try {
+        // Add Origin header
+        headers.set('Origin', window.location.origin);
+
+        // Add CSRF token
+        const csrfToken = getCSRFToken();
+        if (csrfToken) {
+          headers.set('X-CSRFToken', csrfToken);
+        }
+
+        // Add auth token
         const token = await getIdToken();
         if (token) {
           headers.set('Authorization', `Bearer ${token}`);
         }
       } catch (error) {
-        logger.error('Failed to get auth token', {
+        logger.error('Failed to get tokens', {
           error: error instanceof Error ? error.message : 'Unknown error'
         });
       }
@@ -56,14 +87,18 @@ axiosInstance.interceptors.request.use(
 
     // Log request details in development
     if (process.env.NODE_ENV === 'development') {
+      const fullUrl = new URL(config.url || '', config.baseURL).toString();
       logger.debug('API Request', {
         method: config.method?.toUpperCase(),
         url: config.url,
+        baseURL: config.baseURL,
+        fullUrl,
         requestId,
         headers: {
           ...Object.fromEntries(headers),
           Authorization: headers.get('Authorization') ? '[REDACTED]' : undefined
-        }
+        },
+        data: config.data
       });
     }
 
@@ -78,7 +113,7 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-// Response interceptor with retry logic for rate limiting
+// Response interceptor with retry logic for rate limiting and AWS-specific error handling
 axiosInstance.interceptors.response.use(
   (response: AxiosResponse) => {
     const requestId = response.config.headers?.['X-Request-ID'] as string;
@@ -92,7 +127,7 @@ axiosInstance.interceptors.response.use(
       if (process.env.NODE_ENV === 'development') {
         logger.debug('API Response', {
           method: response.config.method?.toUpperCase(),
-          url: response.config.url,
+          url: new URL(response.config.url || '', response.config.baseURL).toString(),
           status: response.status,
           duration: `${duration}ms`,
           requestId,
@@ -128,6 +163,14 @@ axiosInstance.interceptors.response.use(
       requestId,
       response: error.response?.data
     });
+
+    // Handle AWS-specific error cases
+    if (error.code === 'ECONNABORTED') {
+      logger.error('Connection timeout', {
+        url: originalRequest.url,
+        timeout: originalRequest.timeout
+      });
+    }
 
     // Handle rate limiting and token refresh
     if (error.response?.status === 429 && !originalRequest._retry) {
@@ -217,6 +260,18 @@ axiosInstance.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Add CSRF token to all non-GET requests
+axiosInstance.interceptors.request.use(config => {
+  if (config.method && ['post', 'put', 'patch', 'delete'].includes(config.method.toLowerCase())) {
+    const csrfToken = getCSRFToken();
+    if (csrfToken) {
+      config.headers = config.headers || {};
+      config.headers['X-CSRFToken'] = csrfToken;
+    }
+  }
+  return config;
+});
 
 // Add response type validation in development
 if (process.env.NODE_ENV === 'development') {
